@@ -36,8 +36,12 @@ DONE 2026-08-08: 157/157 assertions (15 raycaster), boots clean. DDA skips
 the origin cell; hit normals point back along the ray; placement guarded by
 capsule-vs-cell overlap test.
 
-## Phase 5 — Procedural terrain [ ]
+## Phase 5 — Procedural terrain [x]
 VoxelGenerator: seeded height, surface layers, underground strata.
+DONE 2026-08-08: 178/178 assertions (21 generator). Seed-deterministic
+FastNoiseLite terrain (base 32, hills ±14), GRASS/SAND-DIRT-STONE layering,
+flattened spawn radius, chunk-boundary continuity. VoxelTestTerrain deleted;
+main.gd now generates the world from a seed.
 
 ## Phase 6 — Chunk streaming [ ]
 ChunkManager: load/unload radii, generation + mesh queues, distance

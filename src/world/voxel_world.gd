@@ -21,6 +21,13 @@ signal block_changed(world_pos: Vector3i, old_id: int, new_id: int)
 
 const MESH_BUDGET_PER_FRAME: int = 4
 
+## World identity (persisted by the save system, Phase 14). All terrain in
+## this world derives from this seed via VoxelGenerator.
+var world_seed: int = 0
+## The generator for this world (set by the composition root; used by
+## ChunkManager streaming in Phase 6).
+var generator: VoxelGenerator = null
+
 var _chunks: Dictionary = {}        # Vector3i -> VoxelChunk
 var _mesh_nodes: Dictionary = {}    # Vector3i -> Node3D
 var _dirty_queue: Array[Vector3i] = []

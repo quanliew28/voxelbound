@@ -2,7 +2,16 @@
 
 All notable changes per phase. Newest first.
 
-## [Phase 4] — 2026-08-08
+## [Phase 5] — 2026-08-08
+- **VoxelGenerator** (`src/world/voxel_generator.gd`): seed-deterministic
+  terrain — 4-octave Perlin height (base 32, ±14), surface layers
+  (GRASS/SAND on top, DIRT/SAND ×3, STONE below), flattened spawn radius 4,
+  pure `generate(chunk_coord)` + `fill_area()`. VoxelWorld gains `world_seed`
+  and `generator`. main.gd now seeds the world (424242).
+- `VoxelTestTerrain` deleted (its job is done).
+- Tests: 21 new generator assertions (determinism, seed variance, layering,
+  boundary continuity, spawn flatness, fill volume, valid ids).
+  Total: 178/178 passing; boots clean.
 - **VoxelRaycaster** (`src/world/voxel_raycaster.gd`): Amanatides & Woo voxel
   DDA — pure static math over VoxelWorld. Returns hit/block_pos/prev_pos/
   normal/distance; origin cell skipped; distance = cell-boundary distance.

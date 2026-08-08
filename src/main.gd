@@ -1,6 +1,7 @@
 extends Node3D
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/player.tscn")
+const WORLD_SEED: int = 424242
 
 var world_environment: WorldEnvironment
 var sun: DirectionalLight3D
@@ -45,15 +46,16 @@ func _build_environment() -> void:
 func _build_terrain() -> void:
 	world = VoxelWorld.new()
 	world.name = "VoxelWorld"
+	world.world_seed = WORLD_SEED
+	world.generator = VoxelGenerator.new(WORLD_SEED)
 	add_child(world)
-	# Phase 3 temporary stand-in terrain (deleted when VoxelGenerator lands).
-	VoxelTestTerrain.fill(world, 2)
+	world.generator.fill_area(world, Vector3i.ZERO, 2)
 	world.rebuild_all_dirty()
 
 func _spawn_player() -> void:
 	player = PLAYER_SCENE.instantiate() as PlayerController
 	player.name = "Player"
-	var ground_y := float(VoxelTestTerrain.height_at(0, 0))
+	var ground_y := float(world.generator.height_at(0, 0))
 	player.position = Vector3(0.0, ground_y + 1.5, 0.0)
 	add_child(player)
 	player.world = world

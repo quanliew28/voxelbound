@@ -94,7 +94,7 @@ func _check_terrain() -> void:
 	await _step_frames(60)
 	_check(player != null and player.is_on_floor(), "player lands on voxel terrain")
 	if player != null:
-		var ground_y := float(VoxelTestTerrain.height_at(0, 0))
+		var ground_y := float(world.generator.height_at(0, 0))
 		_check(absf(player.global_position.y - (ground_y + 1.0)) < 1.0,
 			"player rests at surface", "y %f ground %f" % [player.global_position.y, ground_y])
 
