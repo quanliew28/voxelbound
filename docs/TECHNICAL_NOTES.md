@@ -50,6 +50,17 @@ Decisions, pitfalls, and measurements. Append dated entries.
 - Physics queries in `-s` mode: `intersect_ray` before any `physics_frame`
   await hangs headless; await a frame first.
 
+## 2026-08-08 — Phase 8 (crafting/tools)
+- **GDScript: never name a function `is_*` and call it as `Class.is_foo()`**
+  — e.g. `ToolRegistry.is_tool()` failed from most call sites with
+  "Invalid call ... Expected 0 argument(s)" (parser collision with the `is`
+  keyword; even static→static and _initialize contexts broke while identical
+  helper classes worked). Symptom was intermittent (nested-argument calls
+  appeared to work). Fix: rename to `check_tool()`. Naming rule: avoid `is_`
+  prefix on functions accessed via class names.
+- Static singleton data: prefer STATIC VAR INITIALIZERS over lazy
+  `_ensure()` for pure-data registries (deterministic at class load).
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains

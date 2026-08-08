@@ -8,10 +8,16 @@ const MAX_STACK: int = 64
 
 var item_id: int
 var count: int
+## Per-instance durability for tools (-1 = not durability-tracked, e.g. blocks).
+var durability: int = -1
 
 func _init(id: int, amount: int = 1) -> void:
 	item_id = id
 	count = amount
+
+## Tools never stack (one per slot); blocks stack to 64.
+static func max_stack_for(item_id: int) -> int:
+	return 1 if ToolRegistry.check_tool(item_id) else MAX_STACK
 
 func is_empty() -> bool:
 	return count <= 0
@@ -33,4 +39,6 @@ func remove(amount: int) -> int:
 	return removed
 
 func display_name() -> String:
+	if ToolRegistry.check_tool(item_id):
+		return ToolRegistry.display_name(item_id)
 	return BlockRegistry.shared().get_def(item_id).get("name", "Item")

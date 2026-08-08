@@ -2,7 +2,27 @@
 
 All notable changes per phase. Newest first.
 
-## [Phase 7] — 2026-08-08
+## [Phase 8] — 2026-08-08
+- **ToolRegistry** (`src/items/tool_registry.gd`): 6 original tools
+  (Crude/Copper/Crystal Pick + Axe), data-driven speed/damage/durability/
+  affinity, tool ids above the block space (100+), tools never stack.
+  Static data built via static var initializers.
+- **CraftingRegistry** (`src/items/crafting.gd`): 6 original recipes
+  (ingredients: WOOD + STONE/COPPER/CRYSTAL), can_craft/craft with
+  consume-and-refund semantics, crafted tools start at full durability.
+- **Hold-to-mine** in PlayerController: LMB held accumulates progress
+  (hardness seconds), tool affinity speeds mining (wrong tool = 0.5x),
+  durability drains per block, tools break and leave the slot.
+- **HUD crafting panel**: one button per recipe, disabled when ingredients
+  are missing, crafts on click.
+- **Bug found**: `ToolRegistry.is_tool()` failed with "Expected 0
+  argument(s)" from most call sites — a GDScript parser collision with the
+  `is` keyword (name starts with `is_`). Renamed to `check_tool()`; see
+  TECHNICAL_NOTES.
+- Tests: 26 new crafting assertions (registry data, recipe resolution,
+  craft consume/refund, tool durability set, no tool stacking, mine speeds
+  incl. wrong-affinity penalty, durability break + drops). Total: 256/256
+  passing; boots clean.
 - **ItemStack + Inventory** (`src/items/`): 36 slots (0..8 hotbar), stacking
   at 64, add/remove/remove_from_slot/count/find/has_item, overflow returns
   remainder, `changed` signal for UI.

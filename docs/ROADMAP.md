@@ -60,9 +60,15 @@ placement consumes selected hotbar item, Q drops to PickupEntity (Area3D,
 primitive mesh, walk-over collection), HUD (crosshair, hotbar, E inventory
 screen) built from Control nodes, hotbar keys 1-9.
 
-## Phase 8 — Crafting / tools [ ]
+## Phase 8 — Crafting / tools [x]
 Data-driven recipes (original, not Minecraft copies), tool definitions:
 durability, mining speed, damage, block affinities. Crafting UI.
+DONE 2026-08-08: 256/256 assertions (46 crafting), boots clean. ToolRegistry
+(6 original tools: 3 picks + 3 axes with speed/durability/affinity),
+CraftingRegistry (6 original recipes, consume/refund semantics), hold-to-mine
+with affinity speed + durability drain + tool break, HUD crafting panel.
+Static singleton data via static var initializers; `is_tool` renamed
+`check_tool` (GDScript `is`-keyword parse collision — TECHNICAL_NOTES).
 
 ## Phase 9 — Biomes / trees [ ]
 Meadow, Pinewild, Redstone Desert, Frostlands, Crystal Highlands,

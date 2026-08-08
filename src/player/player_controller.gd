@@ -56,8 +56,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	elif event.is_action_pressed("interact_primary") and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	elif event.is_action_pressed("interact_primary") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		try_mine()
 	elif event.is_action_pressed("interact_secondary") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		try_place()
 	elif event.is_action_pressed("drop") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -106,6 +104,7 @@ func _physics_process(delta: float) -> void:
 	velocity.z = lerpf(velocity.z, wish_direction.z * target_speed, ACCELERATION * delta)
 
 	_update_crouch(crouch, delta)
+	_handle_mining(delta)
 	move_and_slide()
 
 func _update_crouch(crouch: bool, delta: float) -> void:
@@ -182,6 +181,69 @@ func _spawn_pickup(item_id: int, amount: int) -> void:
 	var pickup := PickupEntity.new(item_id, amount)
 	pickup.position = global_position + Vector3(0, 0.6, 0) - global_transform.basis.z * 1.2
 	get_parent().add_child(pickup)
+
+
+# --- Crafting (Phase 8) ---
+
+func craft(recipe_index: int) -> bool:
+	return CraftingRegistry.craft(inventory, recipe_index)
+
+
+# --- Hold-to-mine with tools (Phase 8) ---
+
+var _mine_target := Vector3i(0, -99999, 0)
+var _mine_progress: float = 0.0
+
+func _handle_mining(delta: float) -> void:
+	var mining := Input.is_action_pressed("interact_primary") \
+		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and not inventory_open
+	if not mining or world == null:
+		_mine_progress = 0.0
+		return
+	var hit := _raycast()
+	if hit.is_empty():
+		_mine_progress = 0.0
+		return
+	var target: Vector3i = hit.block_pos
+	if target != _mine_target:
+		_mine_target = target
+		_mine_progress = 0.0
+	var id: int = world.get_block(target)
+	if id == BlockRegistry.AIR_ID or BlockRegistry.shared().get_hardness(id) <= 0.0:
+		_mine_progress = 0.0
+		return
+	_mine_progress += delta * _mining_speed(id)
+	if _mine_progress >= BlockRegistry.shared().get_hardness(id):
+		_complete_mine(target, id)
+
+
+## Blocks/second this player can mine `block_id` with the selected tool.
+func _mining_speed(block_id: int) -> float:
+	var stack := inventory.get_slot(selected_slot)
+	if stack == null or not ToolRegistry.check_tool(stack.item_id):
+		return 1.0
+	var tool_id := stack.item_id
+	var block_affinity := BlockRegistry.shared().get_tool(block_id)
+	if block_affinity == &"none" or block_affinity == ToolRegistry.get_affinity(tool_id):
+		return ToolRegistry.get_speed(tool_id)
+	return ToolRegistry.get_speed(tool_id) * 0.5  # wrong tool: slow
+
+
+func _complete_mine(target: Vector3i, id: int) -> void:
+	world.set_block(target, BlockRegistry.AIR_ID)
+	for drop_name in BlockRegistry.shared().get_drops(id):
+		inventory.add_item(BlockRegistry.shared().get_id(drop_name), 1)
+	_drain_tool()
+	_mine_progress = 0.0
+
+
+func _drain_tool() -> void:
+	var stack := inventory.get_slot(selected_slot)
+	if stack == null or not ToolRegistry.check_tool(stack.item_id):
+		return
+	stack.durability -= 1
+	if stack.durability <= 0:
+		inventory.remove_from_slot(selected_slot, 1)  # tool broke
 
 
 func _raycast() -> Dictionary:

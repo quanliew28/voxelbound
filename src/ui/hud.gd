@@ -12,6 +12,7 @@ var _hotbar_names: Array[Label] = []
 var _hotbar_counts: Array[Label] = []
 var _inv_slots: Array[PanelContainer] = []
 var _inv_labels: Array[Label] = []
+var _craft_buttons: Array[Button] = []
 var _inventory_panel: PanelContainer
 
 const SLOT_SIZE: Vector2 = Vector2(36, 36)
@@ -110,8 +111,40 @@ func _build_inventory_panel() -> void:
 		grid.add_child(slot)
 		_inv_slots.append(slot)
 		_inv_labels.append(label)
-	_inventory_panel.add_child(grid)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	row.add_child(grid)
+	# crafting panel (Phase 8) — one button per data-driven recipe
+	var craft_box := VBoxContainer.new()
+	craft_box.add_theme_constant_override("separation", 2)
+	var title := Label.new()
+	title.text = "Craft"
+	title.add_theme_font_size_override("font_size", 14)
+	craft_box.add_child(title)
+	for i in CraftingRegistry.recipe_count():
+		var btn := Button.new()
+		btn.text = _recipe_label(i)
+		btn.custom_minimum_size = Vector2(180, 0)
+		btn.pressed.connect(_on_craft_pressed.bind(i))
+		craft_box.add_child(btn)
+		_craft_buttons.append(btn)
+	row.add_child(craft_box)
+	_inventory_panel.add_child(row)
 	add_child(_inventory_panel)
+
+
+func _recipe_label(index: int) -> String:
+	var recipe := CraftingRegistry.RECIPES[index]
+	var parts: Array[String] = []
+	for ing in recipe.ingredients:
+		parts.append("%s x%d" % [String(ing.item).capitalize(), int(ing.count)])
+	return "%s  (%s)" % [String(recipe.name), ", ".join(parts)]
+
+
+func _on_craft_pressed(index: int) -> void:
+	if player != null:
+		player.craft(index)
+		_refresh_inventory()
 
 
 # --- refresh ---
@@ -142,3 +175,7 @@ func _refresh_inventory() -> void:
 			text = stack.display_name() + " x" + str(stack.count)
 		if _inv_labels[i].text != text:
 			_inv_labels[i].text = text
+	for i in _craft_buttons.size():
+		var craftable := CraftingRegistry.can_craft(player.inventory, i)
+		if _craft_buttons[i].disabled == craftable:
+			_craft_buttons[i].disabled = not craftable

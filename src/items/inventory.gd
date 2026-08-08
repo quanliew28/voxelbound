@@ -31,12 +31,13 @@ func is_empty() -> bool:
 ## Adds `amount` of `id` (fills existing partial stacks first, then empty
 ## slots). Returns the amount that did NOT fit.
 func add_item(id: int, amount: int) -> int:
+	var max_stack := ItemStack.max_stack_for(id)
 	var remaining := amount
 	for i in slots.size():
 		var s := slots[i]
-		if s == null or s.item_id != id or s.count >= MAX_STACK:
+		if s == null or s.item_id != id or s.count >= max_stack:
 			continue
-		var put := mini(MAX_STACK - s.count, remaining)
+		var put := mini(max_stack - s.count, remaining)
 		s.count += put
 		remaining -= put
 		if remaining == 0:
@@ -45,7 +46,7 @@ func add_item(id: int, amount: int) -> int:
 	for i in slots.size():
 		if slots[i] != null:
 			continue
-		var put := mini(MAX_STACK, remaining)
+		var put := mini(max_stack, remaining)
 		slots[i] = ItemStack.new(id, put)
 		remaining -= put
 		if remaining == 0:
