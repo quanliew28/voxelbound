@@ -2,6 +2,22 @@
 
 All notable changes per phase. Newest first.
 
+## [Phase 12] — 2026-08-08
+- **Creature** (`src/creatures/creature.gd`): 5 data-driven types (Burrower,
+  Stoneback, Glow Moth, Nightcrawler, Forest Stalker) with
+  speed/vision/flee_range/aggression/height/color/glow; kinematic Node3D
+  with terrain-snapped y (no navmesh needed on block terrain); state
+  machine IDLE/WANDER/CHASE/FLEE/RETURN; seeded wander; primitive bodies
+  (capsule + eyes, emissive moth wings).
+- **CreatureSpawner** (`src/creatures/creature_spawner.gd`): biome -> spawn
+  pool, 2 s seeded tick, capped population, despawn beyond 64 m.
+- **Bugs found**: `_ = delta` is invalid GDScript (use an underscore-prefixed
+  param); nodes added during a test's synchronous body are not "inside the
+  tree" until a frame passes — global_position reads return identity with an
+  error (tests must await a frame; spawner must add_child before setting
+  global_position). TECHNICAL_NOTES updated.
+- Tests: 16 new creature assertions. Total: 322/322 passing; boots clean.
+
 ## [Phase 11] — 2026-08-08
 - **DayNight** (`src/environment/day_night.gd`): 0..1 day cycle (10 min),
   sun elevation = pure function of time, moon opposite the sun, sky

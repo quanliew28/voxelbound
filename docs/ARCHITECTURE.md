@@ -214,6 +214,29 @@ Blocks, recipes, tools, creatures, biomes are DATA (dictionaries/typed resources
 in registry scripts), never hardcoded in gameplay logic. GAME_DESIGN.md is the
 content authority; the registries must match it.
 
+## 9.1 Creatures & AI (Phase 12, canonical)
+
+`src/creatures/creature.gd` (Node3D, NOT CharacterBody — creatures are
+kinematic: position-driven, y snapped to the terrain surface via
+`world.generator.height_at`, no navmesh needed on block terrain):
+
+- Type table (data): BURROWER (meadow/pine, passive, flees), STONEBACK
+  (desert/highlands, slow, defends), GLOW_MOTH (frostlands, hover + emissive),
+  NIGHTCRAWLER (nocturnal wanderer), FOREST_STALKER (pinewild, fast, chases).
+  Keys: speed, vision, flee_range, aggression, height, body color, glow,
+  home_radius.
+- State machine: IDLE -> WANDER -> (CHASE | FLEE) -> RETURN -> IDLE.
+  Vision/aggression decide CHASE; passive + player inside flee_range decides
+  FLEE; CHASE beyond 1.5x vision -> RETURN to home; reached -> IDLE.
+- Movement: steer toward `target` in xz at `speed`, y = surface + offset
+  (glow moth hovers with a sine bob). Seeded RNG per creature -> deterministic
+  wander targets.
+- Body built from primitives (capsule + eyes, emissive wings for glow).
+
+`src/creatures/creature_spawner.gd` (Node3D): biome -> spawn pool table,
+spawns up to `max_creatures` (12) within [16, 28] m of the player on a 2 s
+seeded tick, despawns beyond 64 m. Seeded from the world seed.
+
 ## 10. Save System (Phase 14, design-fixed now)
 
 Save = world seed + world time + player state + inventory + DIFFS of

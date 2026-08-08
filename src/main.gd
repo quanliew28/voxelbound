@@ -12,6 +12,7 @@ var player: PlayerController
 var hud: HUD
 var day_night: DayNight
 var weather: Weather
+var creature_spawner: CreatureSpawner
 
 func _ready() -> void:
 	_build_environment()
@@ -20,6 +21,7 @@ func _ready() -> void:
 	_build_hud()
 	_build_day_night()
 	_build_weather()
+	_build_creatures()
 
 func _build_hud() -> void:
 	hud = HUD.new()
@@ -62,6 +64,13 @@ func _build_weather() -> void:
 	weather.world = world
 	weather.player = player
 	weather.environment = world_environment.environment
+
+func _build_creatures() -> void:
+	creature_spawner = CreatureSpawner.new(WORLD_SEED)
+	creature_spawner.name = "CreatureSpawner"
+	add_child(creature_spawner)
+	creature_spawner.world = world
+	creature_spawner.player = player
 
 func _build_environment() -> void:
 	world_environment = WorldEnvironment.new()

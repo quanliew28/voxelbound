@@ -12,6 +12,7 @@ const SUITES: Array[String] = [
 	"res://tests/test_biomes.gd",
 	"res://tests/test_caves.gd",
 	"res://tests/test_daynight.gd",
+	"res://tests/test_creatures.gd",
 ]
 
 func _initialize() -> void:

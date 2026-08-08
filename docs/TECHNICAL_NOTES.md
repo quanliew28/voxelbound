@@ -80,6 +80,16 @@ Decisions, pitfalls, and measurements. Append dated entries.
   Transform3D() identity with an error — not the local position. Add the
   node to the tree (or use `.position`) when testing transforms headless.
 
+## 2026-08-08 — Phase 12 (creatures/AI)
+- **`_ = delta` is invalid GDScript** — a bare `_` assignment at statement
+  level is a parse error ("Expected statement"). Use an underscore-prefixed
+  parameter (`_delta: float`) to silence unused-arg warnings.
+- **Nodes added during a synchronous test body are NOT "inside the tree"**
+  until a frame passes: `global_position` reads return Transform3D()
+  identity with an error. Tests must `await tree.physics_frame` after
+  add_child before relying on global transforms, and production code must
+  add_child BEFORE setting global_position.
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains

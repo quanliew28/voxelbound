@@ -97,10 +97,13 @@ energy_multiplier + ambient lerp, shader-drawn star sphere (zero assets).
 Weather: seeded clear/rain/snow schedule, snow in cold biomes, fog density
 per state, GPUParticles3D rain/snow with generated 1px texture.
 
-## Phase 12 — Creatures / AI [ ]
+## Phase 12 — Creatures / AI [x]
 Original creatures (Burrower, Stoneback, Glow Moth, Nightcrawler, Forest
 Stalker), primitive-built visuals; AI states: idle/wander/detect/chase/
 attack/flee/return.
+DONE 2026-08-08: 322/322 assertions (16 creatures), boots clean. Creature
+(data-driven types, kinematic Node3D, terrain-snapped, seeded wander),
+CreatureSpawner (biome pools, capped, despawn far).
 
 ## Phase 13 — Combat [ ]
 Melee, health, damage, knockback, death, drops; player fall damage + head bob.
