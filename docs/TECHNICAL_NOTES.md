@@ -28,6 +28,28 @@ Decisions, pitfalls, and measurements. Append dated entries.
 - GDScript gotcha: `new` is a reserved keyword — cannot be a parameter name
   (parse error in a lambda here). Renamed to `new_id`.
 
+## 2026-08-08 — Phase 3 (chunk meshing)
+- **Godot front-face winding is CLOCKWISE (left-handed convention)** — the
+  opposite of the OpenGL right-hand rule. Triangles built with CCW winding
+  render inside-out (backface-culled) AND collide one-sided from the back,
+  which made the player fall through the terrain. Fix: flip triangle order in
+  the mesher. Regression test `mesher winding clockwise` asserts every
+  triangle's geometric cross opposes its vertex normal. ALWAYS verify winding
+  against physics when adding new procedural geometry.
+- **StandardMaterial3D lost `emission_vertex_color` in Godot 4.x** (probe
+  confirmed absent in 4.7.1). Emissive blocks now use a small procedural
+  shader (`src/world/shaders/emissive.gdshader`) that maps vertex color to
+  EMISSION. Shaders are code — zero-asset compliant.
+- **ConcavePolygonShape3D.set_faces() requires triangle soup** (count % 3 ==
+  0) — quad-indexed meshes crash it. Expand through the index buffer.
+- Face quads must be placed at `cell + clamp(face_offset, 0, 1)`: top/+x/+z
+  faces at cell+1, bottom/-x/-z at the cell boundary. Building all faces at
+  cell_origin collapsed every block's geometry to its bottom corner (rendered
+  wrong AND physics ~1 block off) — caught via debug raycast, not by
+  vertex-count tests; added `mesher face planes` regression.
+- Physics queries in `-s` mode: `intersect_ray` before any `physics_frame`
+  await hangs headless; await a frame first.
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains

@@ -22,9 +22,13 @@ BlockRegistry is a static singleton (BlockRegistry.shared()) — deviation from
 the autoload plan, documented in TECHNICAL_NOTES. VoxelWorld.set_block is the
 gameplay mutation API (marks modified); generation fills chunks directly.
 
-## Phase 3 — Chunk meshing [ ]
+## Phase 3 — Chunk meshing [x]
 VoxelMesher visible-face culling, opaque/transparent/emissive surfaces,
 per-chunk MeshInstance3D + collision, rebuild-on-dirty. Delete test_terrain.
+DONE 2026-08-08: 142/142 assertions (44 mesher), game boots clean, player
+walks on and collides with real voxel terrain. Mesher: face-planes + clockwise
+winding regression tests. Chunk node ownership stays in VoxelWorld until
+ChunkManager (Phase 6).
 
 ## Phase 4 — Block breaking/placement [ ]
 VoxelRaycaster (voxel DDA), LMB mine, RMB place, no placement inside player.

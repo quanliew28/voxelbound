@@ -67,6 +67,20 @@ func fill(id: int) -> void:
 	# fill() is used by generation; do NOT mark is_modified.
 
 
+## Generation/loading path: writes a block WITHOUT marking the chunk modified
+## (only gameplay edits via VoxelWorld.set_block must mark modified — that is
+## the save-diff contract, ARCHITECTURE.md §10). Still dirties for meshing.
+func set_block_generated(local: Vector3i, id: int) -> bool:
+	if not is_local_in_bounds(local):
+		return false
+	var idx := index_of(local.x, local.y, local.z)
+	if blocks[idx] == id:
+		return false
+	blocks[idx] = id
+	is_dirty = true
+	return true
+
+
 ## Serialization hooks (Phase 14 consumes these; format frozen now).
 ## Format: [u8 version][i32 cx][i32 cy][i32 cz][4096 raw block bytes]
 func serialize() -> PackedByteArray:

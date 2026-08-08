@@ -2,22 +2,23 @@
 
 All notable changes per phase. Newest first.
 
-## [Phase 2] — 2026-08-08
-- **BlockRegistry** (`src/world/block_registry.gd`): data-driven block
-  definitions (name, opacity, emissive, hardness, tool affinity, color,
-  drops), StringName<->id mapping, AIR = 0, static singleton access.
-  10 default blocks per GAME_DESIGN (GRASS, DIRT, STONE, SAND, WOOD, LEAF,
-  COAL, COPPER, CRYSTAL). Duplicate/overflow registration refused.
-- **VoxelChunk** (`src/world/voxel_chunk.gd`): pure-data 16^3 storage
-  (PackedByteArray, 4096 bytes), canonical index mapping
-  `x + z*16 + y*256`, bounds-checked get/set, `is_dirty` (mesh rebuild) and
-  `is_modified` (save diff) flags with no-op semantics, `fill()` for
-  generation, frozen serialize/deserialize format (version 1).
-- **VoxelWorld** (`src/world/voxel_world.gd`): chunk map owned by a Node3D,
-  world-space get/set with floor-division mapping (negatives correct),
-  `block_changed(world_pos, old_id, new_id)` signal, get_or_create_chunk,
-  add/remove chunk paths for the future streaming phase.
-- Tests: 85 new voxel assertions (index math, bounds, flags, serialization
-  roundtrip + corrupt input, coordinate mapping, cross-chunk/negative
-  world ops, signal semantics). Total suite: 96/96 passing.
-- Game boots headless with zero errors; no regression to Phase 1.
+## [Phase 3] — 2026-08-08
+- **VoxelMesher + MeshData** (`src/world/`): pure-function chunk mesher with
+  visible-face culling across chunk borders, three surfaces (opaque /
+  transparent / emissive), per-face brightness, Godot-clockwise winding.
+- **VoxelWorld meshing integration**: per-chunk nodes
+  (ChunkNode_* > MeshInstance3D multi-surface ArrayMesh + StaticBody3D >
+  ConcavePolygonShape3D from opaque surface), deduplicated dirty queue with
+  per-frame budget (4/frame), `rebuild_all_dirty()` for startup/tests,
+  border edits dirty + rebuild bordering chunks, `set_block_generated()` on
+  VoxelChunk (generation path, never marks modified).
+- **Procedural materials**: opaque = vertex-color StandardMaterial3D;
+  transparent (leaves) = alpha, double-sided; emissive (crystal) = custom
+  procedural shader mapping vertex color to emission.
+- **VoxelTestTerrain** (temporary, deleted at Phase 5): block-based plateau +
+  hills + ore sprinkle + surface crystals; spawn-safe. Old `test_terrain.gd`
+  (heightmap) removed.
+- **main.gd** now builds a real VoxelWorld; player spawns on voxel surface.
+- Tests: 44 new mesher assertions incl. face-plane and winding regressions.
+  Total suite: 142/142 passing. Game boots headless clean, player walks on
+  and collides with voxel terrain.

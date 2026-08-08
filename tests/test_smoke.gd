@@ -16,7 +16,7 @@ func run() -> int:
 	_check_player()
 	await _check_gravity()
 	await _check_movement()
-	_check_terrain()
+	await _check_terrain()
 	_check_environment()
 	_check_zero_assets()
 	_cleanup()
@@ -71,17 +71,32 @@ func _check_movement() -> void:
 	player.simulate_for_test(Vector2.ZERO, false, false, false)
 
 func _check_terrain() -> void:
-	var terrain := _find_node(_instance, "Terrain")
-	_check(terrain != null, "terrain exists")
-	if terrain == null:
+	var world := _find_node(_instance, "VoxelWorld") as VoxelWorld
+	_check(world != null, "voxel world exists")
+	if world == null:
 		return
-	_check(terrain.has_method("get_height_at"), "terrain has get_height_at")
-	if terrain.has_method("get_height_at"):
-		var h: float = terrain.get_height_at(0.0, 0.0)
-		_check(is_finite(h), "terrain height finite", "height %f" % h)
-	var collision := _find_node(terrain, "CollisionShape3D") as CollisionShape3D
-	var concave := collision != null and collision.shape is ConcavePolygonShape3D
-	_check(concave, "terrain concave collision")
+	_check(world.chunk_count() > 0, "voxel world has chunks", "got %d" % world.chunk_count())
+	var found_mesh := false
+	var found_collision := false
+	for child in world.get_children():
+		if not child.name.begins_with("ChunkNode_"):
+			continue
+		var mi := child.get_node_or_null("Mesh") as MeshInstance3D
+		if mi != null and mi.mesh != null and mi.mesh.get_surface_count() > 0:
+			found_mesh = true
+		var cs := child.get_node_or_null("Collision/Shape") as CollisionShape3D
+		if cs != null and cs.shape is ConcavePolygonShape3D:
+			found_collision = true
+	_check(found_mesh, "voxel world has meshed chunk")
+	_check(found_collision, "voxel world has chunk collision")
+	# player lands on the voxel terrain and rests at the surface
+	var player := _find_node(_instance, "Player") as CharacterBody3D
+	await _step_frames(60)
+	_check(player != null and player.is_on_floor(), "player lands on voxel terrain")
+	if player != null:
+		var ground_y := float(VoxelTestTerrain.height_at(0, 0))
+		_check(absf(player.global_position.y - (ground_y + 1.0)) < 1.0,
+			"player rests at surface", "y %f ground %f" % [player.global_position.y, ground_y])
 
 func _check_environment() -> void:
 	var world_environment := _find_node(_instance, "WorldEnvironment")

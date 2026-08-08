@@ -121,9 +121,30 @@ One canonical design. No agent may substitute its own.
   caves (3D noise) -> ores (blob noise) -> trees/structures (deterministic
   per-chunk hash, border-safe via chunk-neighbour margin).
 - **VoxelMesher** (RefCounted): pure function `build_mesh(chunk, world) ->
-  MeshData`. Phase 3: visible-face culling (skip faces adjacent to opaque
-  blocks). Later: greedy meshing behind the same API. Always produces up to
-  three surfaces: opaque, transparent, emissive — separate materials.
+  MeshData`. No node access, no state. Phase 3: visible-face culling. Later:
+  greedy meshing behind the same API. Always produces up to three surfaces:
+  opaque, transparent, emissive — separate materials.
+  - **MeshData** (RefCounted): three parallel vertex/normal/color/index sets
+    (opaque, transparent, emissive) + `to_array_mesh()`.
+  - **Face-visibility rule** (canonical): a face is visible iff the neighbour
+    cell is AIR, OR the neighbour is non-opaque AND has a different block id
+    than the current block. (Opaque hides opaque; same-type transparent
+    seams are skipped; transparent/emissive faces against solids are drawn.)
+  - Face brightness (per-vertex color modulation, no textures): top 1.0,
+    sides 0.8, bottom 0.55.
+  - **Winding: Godot front faces are CLOCKWISE** — triangles must be emitted
+    so the right-hand-rule cross of their edges opposes the outward normal
+    (renderer culling AND ConcavePolygonShape3D one-sided collision both
+    depend on this). Enforced by the `mesher winding clockwise` test.
+  - Neighbour reads cross chunk borders via `VoxelWorld.get_block` (missing
+    chunks read AIR).
+- **Chunk node layout** (Phase 3–5; ChunkManager takes ownership in Phase 6):
+  per ACTIVE chunk, one `ChunkNode_<cx>_<cy>_<cz>` (Node3D) containing one
+  MeshInstance3D (multi-surface ArrayMesh, one material per surface) and one
+  StaticBody3D > CollisionShape3D (ConcavePolygonShape3D from the opaque
+  surface only — transparent/emissive blocks are non-solid). Nodes per chunk,
+  NEVER per block. Mesh node creation/freeing is owned by VoxelWorld until
+  ChunkManager lands.
 - **ChunkManager** (Node3D, child of VoxelWorld): owns one
   `MeshInstance3D + StaticBody3D + ConcavePolygonShape3D` per ACTIVE chunk
   (nodes per chunk, NEVER per block). Load radius / unload radius in chunks,
@@ -137,8 +158,10 @@ One canonical design. No agent may substitute its own.
 
 A chunk mesh is rebuilt only when: it finishes generating, or a block inside it
 changes, or a block on its border changes in a neighbour (rebuild the owning
-chunk AND the bordering neighbour). Rebuilds go through ChunkManager's queue —
-never immediate, never more than one queued rebuild per chunk per frame.
+chunk AND the bordering neighbour). Rebuilds go through a deduplicated dirty
+queue processed with a per-frame budget (`MESH_BUDGET_PER_FRAME = 4`) — never
+immediate, never more than one queued rebuild per chunk per frame. Tests and
+startup may call `rebuild_all_dirty()` (synchronous).
 
 ## 6. Player (Phase 1, canonical)
 
@@ -159,14 +182,14 @@ never immediate, never more than one queued rebuild per chunk per frame.
 
 Fall damage, head bob: Phase 13/polish, NOT Phase 1.
 
-## 7. Procedural Test Terrain (Phase 1 ONLY)
+## 7. Procedural Test Terrain (Phase 1–4 ONLY)
 
-`src/world/test_terrain.gd`: builds ONE 128×128 m heightmap plane (64×64 quads)
-from FastNoiseLite as an ArrayMesh with per-vertex colors via code-built
-material, plus a `HeightMapShape3D`-equivalent collision (a
-ConcavePolygonShape3D from the same mesh is acceptable at this size). This is a
-THROWAWAY stand-in so the controller can be tuned; it is deleted when Phase 3
-voxel meshing lands. It is not the voxel engine and must not grow features.
+Phase 1–2 used `src/world/test_terrain.gd` (a throwaway heightmap
+StaticBody3D). From Phase 3 it is replaced by `src/world/voxel_test_terrain.gd`:
+a temporary BLOCK-based stand-in that fills a VoxelWorld with a small
+heightmap terrain (GRASS/DIRT/STONE, ore sprinkle, sparse surface crystal)
+plus deterministic `height_at(x, z)`. It is NOT the generator — it is deleted
+when VoxelGenerator lands (Phase 5), and must not grow features.
 
 ## 8. Environment (Phase 1)
 

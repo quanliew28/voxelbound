@@ -4,7 +4,7 @@ const PLAYER_SCENE: PackedScene = preload("res://scenes/player.tscn")
 
 var world_environment: WorldEnvironment
 var sun: DirectionalLight3D
-var terrain: TestTerrain
+var world: VoxelWorld
 var player: PlayerController
 
 func _ready() -> void:
@@ -43,12 +43,16 @@ func _build_environment() -> void:
 	add_child(sun)
 
 func _build_terrain() -> void:
-	terrain = TestTerrain.new()
-	terrain.name = "Terrain"
-	add_child(terrain)
+	world = VoxelWorld.new()
+	world.name = "VoxelWorld"
+	add_child(world)
+	# Phase 3 temporary stand-in terrain (deleted when VoxelGenerator lands).
+	VoxelTestTerrain.fill(world, 2)
+	world.rebuild_all_dirty()
 
 func _spawn_player() -> void:
 	player = PLAYER_SCENE.instantiate() as PlayerController
 	player.name = "Player"
-	player.position = Vector3(0.0, terrain.get_height_at(0.0, 0.0) + 2.0, 0.0)
+	var ground_y := float(VoxelTestTerrain.height_at(0, 0))
+	player.position = Vector3(0.0, ground_y + 1.5, 0.0)
 	add_child(player)
