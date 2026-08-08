@@ -2,7 +2,22 @@
 
 All notable changes per phase. Newest first.
 
-## [Phase 10] — 2026-08-08
+## [Phase 11] — 2026-08-08
+- **DayNight** (`src/environment/day_night.gd`): 0..1 day cycle (10 min),
+  sun elevation = pure function of time, moon opposite the sun, sky
+  top-color + energy_multiplier + ambient all lerp by night factor.
+- **Procedural star field** (`sky_stars.gdshader` on a big sphere, cull
+  front, blend add): grid-hashed stars, horizon fade, night-factor driven.
+- **Weather** (`src/environment/weather.gd`): seeded clear/rain/snow
+  schedule; snow replaces rain in Frostlands/Crystal Highlands; fog density
+  per state; rain/snow GPUParticles3D with a generated 1px texture and
+  box emission following the player.
+- **Bug found**: `ProceduralSkyMaterial` has NO `sun_energy` in Godot 4.7 —
+  it's `energy_multiplier`; the wrong property threw every frame at boot
+  (also aborted the ambient lerp). TECHNICAL_NOTES updated.
+- Tests: 13 new daynight assertions (elevation math, time advance, sun/moon
+  opposition, light energies, ambient cycle, weather states + fog, seeded
+  determinism, cold-biome snow). Total: 306/306 passing; boots clean.
 - **Caves + ores** in `VoxelGenerator._carve_and_ore()`: three 3D-noise
   carving systems — spaghetti tunnels (abs fractal noise), large chambers
   (low-frequency), vertical shafts (y-stretched) — plus deep rare crystal

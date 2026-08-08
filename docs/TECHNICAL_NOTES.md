@@ -71,6 +71,15 @@ Decisions, pitfalls, and measurements. Append dated entries.
 - GDScript: `for cy in [1, 2]` yields an untyped loop var — a subsequent
   `var wy := cy * 16 + y` fails type inference; annotate `var wy: int`.
 
+## 2026-08-08 — Phase 11 (day/night/weather)
+- **ProceduralSkyMaterial has NO `sun_energy` in Godot 4.7** — the property
+  is `energy_multiplier` (scales the whole sky). Assigning `sun_energy`
+  throws every frame (silent in filtered logs, but it also aborted the rest
+  of `_update`, leaving ambient stuck at its default).
+- `Node3D.global_position` on a node NOT inside the tree returns
+  Transform3D() identity with an error — not the local position. Add the
+  node to the tree (or use `.position`) when testing transforms headless.
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains

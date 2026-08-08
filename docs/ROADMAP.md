@@ -89,8 +89,13 @@ COPPER (>0.27, below h-14) blobs; surface 4 layers never carved; thresholds
 calibrated to measured FBM ranges (see TECHNICAL_NOTES). World-coord noise
 => border-safe by construction.
 
-## Phase 11 — Day/night / weather [ ]
+## Phase 11 — Day/night / weather [x]
 Sun/moon/stars cycle on the Phase 1 sky rig; rain, snow, fog (procedural).
+DONE 2026-08-08: 306/306 assertions (13 daynight), boots clean. DayNight:
+10-min cycle, sun+moon opposite directional lights, sky top-color +
+energy_multiplier + ambient lerp, shader-drawn star sphere (zero assets).
+Weather: seeded clear/rain/snow schedule, snow in cold biomes, fog density
+per state, GPUParticles3D rain/snow with generated 1px texture.
 
 ## Phase 12 — Creatures / AI [ ]
 Original creatures (Burrower, Stoneback, Glow Moth, Nightcrawler, Forest

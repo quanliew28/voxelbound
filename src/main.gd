@@ -5,22 +5,63 @@ const WORLD_SEED: int = 424242
 
 var world_environment: WorldEnvironment
 var sun: DirectionalLight3D
+var moon: DirectionalLight3D
 var world: VoxelWorld
 var chunk_manager: ChunkManager
 var player: PlayerController
 var hud: HUD
+var day_night: DayNight
+var weather: Weather
 
 func _ready() -> void:
 	_build_environment()
 	_build_terrain()
 	_spawn_player()
 	_build_hud()
+	_build_day_night()
+	_build_weather()
 
 func _build_hud() -> void:
 	hud = HUD.new()
 	hud.name = "HUD"
 	add_child(hud)
 	hud.player = player
+
+func _build_day_night() -> void:
+	# moon: dim bluish light opposite the sun (driven by DayNight)
+	moon = DirectionalLight3D.new()
+	moon.name = "Moon"
+	moon.unique_name_in_owner = true
+	moon.light_color = Color(0.55, 0.62, 0.9)
+	moon.light_energy = 0.0
+	moon.shadow_enabled = false
+	add_child(moon)
+	# procedural star sphere (zero assets — shader-drawn stars)
+	var stars := MeshInstance3D.new()
+	stars.name = "Stars"
+	var sphere := SphereMesh.new()
+	sphere.radius = 600.0
+	sphere.height = 1200.0
+	sphere.radial_segments = 64
+	sphere.rings = 32
+	var star_mat := ShaderMaterial.new()
+	star_mat.shader = preload("res://src/environment/shaders/sky_stars.gdshader")
+	sphere.material = star_mat
+	stars.mesh = sphere
+	stars.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(stars)
+	day_night = DayNight.new()
+	day_night.name = "DayNight"
+	add_child(day_night)
+	day_night.setup(sun, moon, world_environment, star_mat)
+
+func _build_weather() -> void:
+	weather = Weather.new(WORLD_SEED)
+	weather.name = "Weather"
+	add_child(weather)
+	weather.world = world
+	weather.player = player
+	weather.environment = world_environment.environment
 
 func _build_environment() -> void:
 	world_environment = WorldEnvironment.new()
