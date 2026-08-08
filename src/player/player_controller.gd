@@ -7,6 +7,12 @@ class_name PlayerController
 @export var jump_velocity: float = 7.5
 @export var gravity: float = 22.0
 @export var mouse_sensitivity: float = 0.0022
+@export var interact_range: float = 6.0
+
+## The voxel world this player edits (wired by the composition root).
+var world: VoxelWorld = null
+## Block placed by RMB (hotbar drives this from Phase 7 on).
+var selected_block_id: int = 1
 
 const STAND_HEIGHT: float = 1.8
 const STAND_HEAD_Y: float = 1.62
@@ -17,6 +23,7 @@ const CROUCH_LERP_SPEED: float = 10.0
 const MAX_LOOK_DEGREES: float = 89.0
 
 @onready var head: Node3D = %Head
+@onready var camera: Camera3D = %Camera3D
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var capsule_shape: CapsuleShape3D = collision_shape.shape as CapsuleShape3D
 
@@ -46,6 +53,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	elif event.is_action_pressed("interact_primary") and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	elif event.is_action_pressed("interact_primary") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		try_mine()
+	elif event.is_action_pressed("interact_secondary") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		try_place()
 
 func _physics_process(delta: float) -> void:
 	var direction: Vector2
@@ -105,3 +116,51 @@ func _has_headroom() -> bool:
 	query.exclude = [self]
 	var hits := get_world_3d().direct_space_state.intersect_shape(query, 1)
 	return hits.is_empty()
+
+
+# --- Block interaction (Phase 4) ---
+
+func try_mine() -> void:
+	if world == null:
+		return
+	var hit := _raycast()
+	if hit.is_empty():
+		return
+	var id: int = world.get_block(hit.block_pos)
+	if id == BlockRegistry.AIR_ID or BlockRegistry.shared().get_hardness(id) <= 0.0:
+		return
+	world.set_block(hit.block_pos, BlockRegistry.AIR_ID)
+
+
+func try_place() -> void:
+	if world == null:
+		return
+	var hit := _raycast()
+	if hit.is_empty():
+		return
+	var target: Vector3i = hit.prev_pos
+	if world.get_block(target) != BlockRegistry.AIR_ID:
+		return
+	if cell_overlaps_player(target):
+		return
+	world.set_block(target, selected_block_id)
+
+
+func _raycast() -> Dictionary:
+	if world == null:
+		return {}
+	return VoxelRaycaster.cast_ray(world, camera.global_position,
+		-camera.global_transform.basis.z, interact_range)
+
+
+## Conservative capsule-vs-cell AABB test — placement is rejected when the
+## target cell intersects the player's body (never place inside yourself).
+func cell_overlaps_player(cell: Vector3i) -> bool:
+	var radius: float = capsule_shape.radius
+	var p_min := Vector3(global_position.x - radius, global_position.y, global_position.z - radius)
+	var p_max := Vector3(global_position.x + radius, global_position.y + capsule_shape.height, global_position.z + radius)
+	var c_min := Vector3(cell)
+	var c_max := c_min + Vector3.ONE
+	return p_min.x < c_max.x and p_max.x > c_min.x \
+		and p_min.y < c_max.y and p_max.y > c_min.y \
+		and p_min.z < c_max.z and p_max.z > c_min.z

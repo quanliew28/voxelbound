@@ -151,8 +151,14 @@ One canonical design. No agent may substitute its own.
   generation queue + mesh queue, priority = distance to player, N chunks
   processed per frame; heavy generation dispatched to a WorkerThreadPool.
 - **VoxelRaycaster** (RefCounted): Amanatides & Woo voxel DDA over world data.
-  Returns `{hit, chunk_coord, block_pos, prev_pos, normal, distance}`.
-  `prev_pos` is the placement cell.
+  Returns `{hit, chunk_coord, block_pos, prev_pos, normal, distance}` or `{}`.
+  `prev_pos` is the placement cell. Rules: the ORIGIN cell is never reported
+  as a hit (player's own cell); the hit normal points back along the ray
+  (e.g. stepping +x yields normal -x); max distance ~6m.
+- **Block interaction** (player, Phase 4+): LMB = mine (hardness > 0), RMB =
+  place `selected_block_id` at `prev_pos` only if it is AIR AND does not
+  overlap the player's capsule AABB (conservative capsule-vs-cell test —
+  never place inside yourself). Tool/hold-to-mine semantics arrive Phase 8.
 
 ### 5.3 Mesh rebuild rule
 

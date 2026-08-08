@@ -2,7 +2,17 @@
 
 All notable changes per phase. Newest first.
 
-## [Phase 3] — 2026-08-08
+## [Phase 4] — 2026-08-08
+- **VoxelRaycaster** (`src/world/voxel_raycaster.gd`): Amanatides & Woo voxel
+  DDA — pure static math over VoxelWorld. Returns hit/block_pos/prev_pos/
+  normal/distance; origin cell skipped; distance = cell-boundary distance.
+- **Block interaction** in PlayerController: LMB mines (hardness > 0), RMB
+  places `selected_block_id` at the face-adjacent cell, guarded by a
+  capsule-vs-cell AABB overlap test (never inside yourself). `interact_range`
+  6 m. World wired by main.gd.
+- Tests: 15 new raycaster assertions (axis hits + normals + placement cells,
+  misses, range, inside-solid origin skip, overlap guard incl. crouch,
+  end-to-end mine/place/reject). Total: 157/157 passing; boots clean.
 - **VoxelMesher + MeshData** (`src/world/`): pure-function chunk mesher with
   visible-face culling across chunk borders, three surfaces (opaque /
   transparent / emissive), per-face brightness, Godot-clockwise winding.

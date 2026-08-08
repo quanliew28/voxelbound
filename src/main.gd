@@ -56,3 +56,4 @@ func _spawn_player() -> void:
 	var ground_y := float(VoxelTestTerrain.height_at(0, 0))
 	player.position = Vector3(0.0, ground_y + 1.5, 0.0)
 	add_child(player)
+	player.world = world

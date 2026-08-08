@@ -30,8 +30,11 @@ walks on and collides with real voxel terrain. Mesher: face-planes + clockwise
 winding regression tests. Chunk node ownership stays in VoxelWorld until
 ChunkManager (Phase 6).
 
-## Phase 4 — Block breaking/placement [ ]
+## Phase 4 — Block breaking/placement [x]
 VoxelRaycaster (voxel DDA), LMB mine, RMB place, no placement inside player.
+DONE 2026-08-08: 157/157 assertions (15 raycaster), boots clean. DDA skips
+the origin cell; hit normals point back along the ray; placement guarded by
+capsule-vs-cell overlap test.
 
 ## Phase 5 — Procedural terrain [ ]
 VoxelGenerator: seeded height, surface layers, underground strata.
