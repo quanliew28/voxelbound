@@ -70,9 +70,15 @@ with affinity speed + durability drain + tool break, HUD crafting panel.
 Static singleton data via static var initializers; `is_tool` renamed
 `check_tool` (GDScript `is`-keyword parse collision — TECHNICAL_NOTES).
 
-## Phase 9 — Biomes / trees [ ]
+## Phase 9 — Biomes / trees [x]
 Meadow, Pinewild, Redstone Desert, Frostlands, Crystal Highlands,
 Deep Caverns; biome-blended terrain; multiple procedural tree generators.
+DONE 2026-08-08: 286/286 assertions (33 biomes), boots clean. BiomeRegistry
+(5 surface biomes, Voronoi over widened temp/humid noise), per-biome
+height/surface/subsurface, TreeGenerator (broadleaf + pine, deterministic
+column hash, 5x5 lone-tree spacing for border-safe idempotency), surface
+crystal clusters in highlands, spawn protected (meadow plateau, no trees).
+(Deep Caverns underground biome arrives with Phase 10 caves.)
 
 ## Phase 10 — Caves / ores [ ]
 3D-noise caves: tunnels, chambers, shafts, rare crystal caves, ore blobs.

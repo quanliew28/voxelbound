@@ -2,7 +2,24 @@
 
 All notable changes per phase. Newest first.
 
-## [Phase 8] — 2026-08-08
+## [Phase 9] — 2026-08-08
+- **BiomeRegistry** (`src/world/biome_registry.gd`): 5 data-driven surface
+  biomes (Meadow, Pinewild, Redstone Desert, Frostlands, Crystal Highlands)
+  selected by Voronoi over widened temperature/humidity noise; per-biome
+  height, surface + subsurface blocks, tree type/density, crystal flag.
+- **VoxelGenerator biome pipeline**: biome height + layers replace the fixed
+  height model; SNOW block added; spawn area stays a flat Meadow plateau.
+- **TreeGenerator** (`src/world/tree_generator.gd`): broadleaf + pine shapes
+  from column hashes; 5x5 lone-tree spacing rule makes chunk-border trees
+  deterministic and order-independent (no trunk/canopy conflicts); trees
+  root only in grass.
+- **Crystal Highlands** surface crystal clusters (emissive).
+- **ChunkManager fix**: generation workers now capture the world seed at
+  dispatch (no world access on worker threads) and guard call_deferred
+  against shutdown-time free — boot is warning-free.
+- Tests: 33 new biome assertions (data validity, determinism, all 5 biomes
+  reachable, per-biome layers, spawn safety, tree presence/structure, border
+  consistency). Total: 286/286 passing; boots clean.
 - **ToolRegistry** (`src/items/tool_registry.gd`): 6 original tools
   (Crude/Copper/Crystal Pick + Axe), data-driven speed/damage/durability/
   affinity, tool ids above the block space (100+), tools never stack.

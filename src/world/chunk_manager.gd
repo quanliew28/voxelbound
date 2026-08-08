@@ -83,19 +83,22 @@ func _dispatch_generation() -> void:
 			break
 		_in_flight[coord] = true
 		budget -= 1
-		WorkerThreadPool.add_task(_generate_worker.bind(coord), true)
+		WorkerThreadPool.add_task(_generate_worker.bind(coord, world.world_seed), true)
 
 
 func _dist(coord: Vector3i) -> int:
 	return maxi(absi(coord.x - player_chunk.x), absi(coord.z - player_chunk.z))
 
 
-## Runs on a worker thread. Touches only locals + the world seed; the chunk
-## is handed back to the main thread via call_deferred (thread-safe).
-func _generate_worker(coord: Vector3i) -> void:
-	var gen := VoxelGenerator.new(world.world_seed)
+## Runs on a worker thread. Touches only locals (the seed is captured at
+## dispatch time); the chunk is handed back to the main thread via
+## call_deferred (thread-safe). The is_instance_valid guard prevents
+## shutdown-time errors when the manager is freed mid-task.
+func _generate_worker(coord: Vector3i, seed: int) -> void:
+	var gen := VoxelGenerator.new(seed)
 	var chunk := gen.generate(coord)
-	call_deferred(&"_on_chunk_generated", chunk)
+	if is_instance_valid(self):
+		call_deferred(&"_on_chunk_generated", chunk)
 
 
 func _on_chunk_generated(chunk: VoxelChunk) -> void:

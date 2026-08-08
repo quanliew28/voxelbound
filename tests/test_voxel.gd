@@ -41,7 +41,7 @@ func _check_registry() -> void:
 	_check(reg.get_name(0) == &"AIR", "registry id->name roundtrip")
 	_check(reg.get_name(999) == &"AIR", "registry out-of-range name -> air")
 	_check(reg.has_block(&"CRYSTAL"), "registry has crystal")
-	_check(reg.count() == 10, "registry 10 default blocks", "count %d" % reg.count())
+	_check(reg.count() == 11, "registry default blocks", "count %d" % reg.count())
 	_check(reg.is_opaque(reg.get_id(&"GRASS")), "registry grass opaque")
 	_check(not reg.is_opaque(reg.get_id(&"LEAF")), "registry leaf not opaque")
 	_check(reg.is_transparent(reg.get_id(&"LEAF")), "registry leaf transparent")
@@ -59,7 +59,7 @@ func _check_registry() -> void:
 	# AIR id stability across reset
 	reg.reset()
 	_check(reg.get_id(&"AIR") == 0, "registry air id 0 after reset")
-	_check(reg.count() == 10, "registry 10 blocks after reset")
+	_check(reg.count() == 11, "registry blocks after reset")
 	reg.reset()  # leave shared registry pristine for other suites
 
 

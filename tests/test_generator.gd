@@ -53,51 +53,36 @@ func _check_seed_difference() -> void:
 func _check_surface_layers() -> void:
 	var reg := BlockRegistry.shared()
 	var gen := VoxelGenerator.new(999)
-	# probe a non-flat, non-sand column: find one with height between 27 and 45
+	# probe a MEADOW/PINEWILD (grass) column away from spawn
 	var found := false
-	for dx in range(8, 40):
-		var h := gen.height_at(dx, 7)
-		if h > 27 and h < 45:
-			found = true
-			var chunk_y := h / VoxelChunk.CHUNK_SIZE
-			var chunk := gen.generate(Vector3i(0, chunk_y, 0))
-			var local := Vector3i(dx, h - chunk_y * VoxelChunk.CHUNK_SIZE, 7)
-			_check(chunk.get_block(local) == reg.get_id(&"GRASS"), "gen grass on surface", "h=%d block=%d" % [h, chunk.get_block(local)])
-			var below := Vector3i(dx, local.y - 1, 7)
-			var b1 := chunk.get_block(below)
-			_check(b1 == reg.get_id(&"DIRT") or b1 == reg.get_id(&"SAND"), "gen dirt/sand under surface", "got %d" % b1)
-			var b3 := chunk.get_block(Vector3i(dx, local.y - 3, 7))
-			_check(b3 == reg.get_id(&"DIRT") or b3 == reg.get_id(&"SAND"), "gen dirt/sand at -3", "got %d" % b3)
-			var deep := chunk.get_block(Vector3i(dx, maxi(local.y - 8, 0), 7))
-			_check(deep == reg.get_id(&"STONE"), "gen stone deeper", "got %d" % deep)
-			var above := chunk.get_block(Vector3i(dx, local.y + 2, 7))
-			_check(above == BlockRegistry.AIR_ID, "gen air above surface")
-			break
-	_check(found, "gen probe column found")
-	# sand in low areas — scan a grid for any column at/below SAND_LEVEL
-	var low_h := -1
-	for dz in range(-60, 61, 3):
-		for dx in range(-60, 61, 3):
+	for dx in range(8, 120):
+		for dz in range(-60, 60):
+			var biome := gen.biome_at(dx, dz)
+			if biome != BiomeRegistry.MEADOW and biome != BiomeRegistry.PINEWILD:
+				continue
 			var h := gen.height_at(dx, dz)
-			if h <= 26:
-				low_h = h
+			if h > 27 and h < 70:
+				found = true
 				var chunk_coord := Vector3i(
 					floori(dx / float(VoxelChunk.CHUNK_SIZE)),
 					h / VoxelChunk.CHUNK_SIZE,
-					floori(dz / float(VoxelChunk.CHUNK_SIZE)),
-				)
+					floori(dz / float(VoxelChunk.CHUNK_SIZE)))
 				var chunk := gen.generate(chunk_coord)
 				var local := Vector3i(
 					dx - chunk_coord.x * VoxelChunk.CHUNK_SIZE,
 					h - chunk_coord.y * VoxelChunk.CHUNK_SIZE,
-					dz - chunk_coord.z * VoxelChunk.CHUNK_SIZE,
-				)
-				var block := chunk.get_block(local)
-				_check(block == reg.get_id(&"SAND"), "gen sand on low surface", "h=%d block=%d" % [h, block])
+					dz - chunk_coord.z * VoxelChunk.CHUNK_SIZE)
+				_check(chunk.get_block(local) == reg.get_id(&"GRASS"), "gen grass on surface", "h=%d block=%d biome=%d" % [h, chunk.get_block(local), biome])
+				var b1 := chunk.get_block(Vector3i(local.x, local.y - 1, local.z))
+				_check(b1 == reg.get_id(&"DIRT"), "gen dirt under surface", "got %d" % b1)
+				var deep := chunk.get_block(Vector3i(local.x, maxi(local.y - 8, 0), local.z))
+				_check(deep == reg.get_id(&"STONE"), "gen stone deeper", "got %d" % deep)
+				var above := chunk.get_block(Vector3i(local.x, local.y + 2, local.z))
+				_check(above == BlockRegistry.AIR_ID, "gen air above surface")
 				break
-		if low_h != -1:
+		if found:
 			break
-	_check(low_h != -1, "gen low column found", "low_h=%d" % low_h)
+	_check(found, "gen grass column found")
 
 
 func _check_chunk_boundary() -> void:

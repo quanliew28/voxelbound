@@ -177,3 +177,8 @@ func _register_defaults() -> void:
 		"color": Color(0.55, 0.85, 1.0, 0.6), "drops": [&"CRYSTAL"],
 		"falling": false, "strength": 1.5,
 	})
+	register_block(&"SNOW", {
+		"name": "Snow", "opaque": true, "transparent": false, "emissive": false,
+		"hardness": 0.4, "tool": &"shovel", "color": Color(0.92, 0.94, 0.98),
+		"drops": [&"SNOW"], "falling": false, "strength": 0.4,
+	})
