@@ -145,11 +145,14 @@ One canonical design. No agent may substitute its own.
   surface only — transparent/emissive blocks are non-solid). Nodes per chunk,
   NEVER per block. Mesh node creation/freeing is owned by VoxelWorld until
   ChunkManager lands.
-- **ChunkManager** (Node3D, child of VoxelWorld): owns one
-  `MeshInstance3D + StaticBody3D + ConcavePolygonShape3D` per ACTIVE chunk
-  (nodes per chunk, NEVER per block). Load radius / unload radius in chunks,
-  generation queue + mesh queue, priority = distance to player, N chunks
-  processed per frame; heavy generation dispatched to a WorkerThreadPool.
+- **ChunkManager** (Node3D, child of VoxelWorld): owns STREAMING — load
+  radius / unload radius (Chebyshev xz), vertical columns cy ∈ [0, top_chunk_y],
+  generation queue sorted by player distance, budgeted dispatch to a
+  WorkerThreadPool (fresh VoxelGenerator per task — thread-safe by
+  construction; results delivered via call_deferred), periodic unload of far
+  chunks. MESHING stays in VoxelWorld (dirty queue + per-chunk nodes above) —
+  ChunkManager feeds it via add_chunk(). Startup spawn area is pre-generated
+  synchronously (`generate_sync`) so the player never spawns over air.
 - **VoxelRaycaster** (RefCounted): Amanatides & Woo voxel DDA over world data.
   Returns `{hit, chunk_coord, block_pos, prev_pos, normal, distance}` or `{}`.
   `prev_pos` is the placement cell. Rules: the ORIGIN cell is never reported

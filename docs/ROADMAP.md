@@ -43,9 +43,13 @@ FastNoiseLite terrain (base 32, hills ±14), GRASS/SAND-DIRT-STONE layering,
 flattened spawn radius, chunk-boundary continuity. VoxelTestTerrain deleted;
 main.gd now generates the world from a seed.
 
-## Phase 6 — Chunk streaming [ ]
+## Phase 6 — Chunk streaming [x]
 ChunkManager: load/unload radii, generation + mesh queues, distance
 priority, WorkerThreadPool, per-frame budget.
+DONE 2026-08-08: 190/190 assertions (12 streaming), boots clean. ChunkManager
+owns streaming (Chebyshev xz radii, vertical columns, budgeted threaded
+generation with per-task generators, call_deferred results, periodic unload);
+meshing stays in VoxelWorld. Spawn area pre-filled synchronously.
 
 ## Phase 7 — Inventory / hotbar [ ]
 36 inventory slots + 9 hotbar, stacking, item IDs, selection, pickup/drop,

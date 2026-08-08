@@ -2,7 +2,18 @@
 
 All notable changes per phase. Newest first.
 
-## [Phase 5] — 2026-08-08
+## [Phase 6] — 2026-08-08
+- **ChunkManager** (`src/world/chunk_manager.gd`): streaming — load/unload
+  radii (Chebyshev xz), vertical chunk columns [0, top_chunk_y], generation
+  queue sorted by player distance, WorkerThreadPool dispatch (fresh
+  VoxelGenerator per task, call_deferred results, in-flight dedupe, per-frame
+  + concurrency budgets), periodic far-chunk unload, `generate_sync()` for
+  the spawn area. VoxelWorld gains `get_loaded_chunk_coords()`.
+- main.gd: spawn area pre-filled synchronously, streaming maintains the world
+  around the player as they move.
+- Tests: 12 new streaming assertions (load radius fill, meshing, unload on
+  teleport, bounded world size, threaded determinism vs direct generation,
+  mesh node freeing). Total: 190/190 passing; boots clean.
 - **VoxelGenerator** (`src/world/voxel_generator.gd`): seed-deterministic
   terrain — 4-octave Perlin height (base 32, ±14), surface layers
   (GRASS/SAND on top, DIRT/SAND ×3, STONE below), flattened spawn radius 4,

@@ -62,6 +62,14 @@ func chunk_count() -> int:
 	return _chunks.size()
 
 
+## Snapshot of loaded chunk coords (streaming unload + save system use this).
+func get_loaded_chunk_coords() -> Array[Vector3i]:
+	var coords: Array[Vector3i] = []
+	for coord in _chunks:
+		coords.append(coord)
+	return coords
+
+
 ## Returns the chunk at coord, or null. No creation side effects.
 func get_chunk(coord: Vector3i) -> VoxelChunk:
 	return _chunks.get(coord, null)

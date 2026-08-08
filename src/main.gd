@@ -6,6 +6,7 @@ const WORLD_SEED: int = 424242
 var world_environment: WorldEnvironment
 var sun: DirectionalLight3D
 var world: VoxelWorld
+var chunk_manager: ChunkManager
 var player: PlayerController
 
 func _ready() -> void:
@@ -49,8 +50,18 @@ func _build_terrain() -> void:
 	world.world_seed = WORLD_SEED
 	world.generator = VoxelGenerator.new(WORLD_SEED)
 	add_child(world)
-	world.generator.fill_area(world, Vector3i.ZERO, 2)
+	# Streaming (Phase 6): pre-fill the spawn area synchronously so the
+	# player never spawns over air, then let ChunkManager keep the world
+	# loaded around the player.
+	chunk_manager = ChunkManager.new()
+	chunk_manager.name = "ChunkManager"
+	world.add_child(chunk_manager)
+	chunk_manager.generate_sync(Vector3i.ZERO, 2)
 	world.rebuild_all_dirty()
+
+func _process(_delta: float) -> void:
+	if chunk_manager != null and player != null:
+		chunk_manager.set_player_position(player.global_position)
 
 func _spawn_player() -> void:
 	player = PLAYER_SCENE.instantiate() as PlayerController
