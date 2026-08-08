@@ -20,6 +20,14 @@ var world_seed: int
 var _height_noise: FastNoiseLite
 var _temp_noise: FastNoiseLite
 var _humid_noise: FastNoiseLite
+# Phase 10 cave/ore noises (all seeded -> deterministic; sampled at WORLD
+# coordinates so carving is chunk-border-safe by construction)
+var _cave_noise: FastNoiseLite
+var _chamber_noise: FastNoiseLite
+var _shaft_noise: FastNoiseLite
+var _crystal_region_noise: FastNoiseLite
+var _ore_coal_noise: FastNoiseLite
+var _ore_copper_noise: FastNoiseLite
 
 func _init(seed_value: int) -> void:
 	world_seed = seed_value
@@ -37,6 +45,21 @@ func _init(seed_value: int) -> void:
 	_humid_noise.seed = world_seed + 202
 	_humid_noise.frequency = 0.0015
 	_humid_noise.fractal_octaves = 2
+	_cave_noise = _noise(world_seed + 303, 0.055, 3)
+	_chamber_noise = _noise(world_seed + 404, 0.016, 2)
+	_shaft_noise = _noise(world_seed + 505, 0.05, 2)
+	_crystal_region_noise = _noise(world_seed + 606, 0.008, 2)
+	_ore_coal_noise = _noise(world_seed + 707, 0.03, 2)
+	_ore_copper_noise = _noise(world_seed + 808, 0.03, 2)
+
+
+static func _noise(seed_value: int, frequency: float, octaves: int) -> FastNoiseLite:
+	var n := FastNoiseLite.new()
+	n.seed = seed_value
+	n.frequency = frequency
+	n.fractal_octaves = octaves
+	n.noise_type = FastNoiseLite.TYPE_PERLIN
+	return n
 
 
 ## Biome id for a column (Meadow in the flattened spawn area).
@@ -86,10 +109,43 @@ func generate(chunk_coord: Vector3i) -> VoxelChunk:
 					else:
 						id = stone
 				if id != BlockRegistry.AIR_ID:
+					id = _carve_and_ore(wx, wy, wz, h, id, stone)
+				if id != BlockRegistry.AIR_ID:
 					chunk.set_block_generated(Vector3i(x, y, z), id)
 	_tree_pass(chunk, ox, oy, oz)
 	_crystal_pass(chunk, ox, oy, oz)
 	return chunk
+
+
+## Phase 10: 3D-noise cave carving + ore deposits for one cell.
+## Carving only happens at least 4 blocks below the surface (surface layers
+## always stay solid). All noise is sampled at WORLD coordinates, so carving
+## is identical for every chunk covering the same cell — border-safe by
+## construction. Deep crystal-cave regions (the "Deep Caverns" feature) are
+## rare, very deep, and sprinkle CRYSTAL inside the carved space.
+## Thresholds are calibrated to FastNoiseLite FBM output ranges (~±0.55 for
+## 3 octaves, ~±0.5 for 2) — see TECHNICAL_NOTES.
+func _carve_and_ore(wx: int, wy: int, wz: int, surface_h: int, id: int, stone: int) -> int:
+	var reg := BlockRegistry.shared()
+	if wy <= surface_h - 4:
+		var n := _cave_noise.get_noise_3d(float(wx), float(wy), float(wz))
+		var carved := absf(n) > 0.30  # spaghetti tunnels
+		if not carved and _chamber_noise.get_noise_3d(float(wx), float(wy), float(wz)) > 0.25:
+			carved = true  # large chambers
+		if not carved and _shaft_noise.get_noise_3d(float(wx), float(wy * 0.25), float(wz)) > 0.30:
+			carved = true  # vertical shafts
+		if carved:
+			if wy <= surface_h - 18 and _crystal_region_noise.get_noise_3d(float(wx), float(wy), float(wz)) > 0.18:
+				# Deep Caverns: sparse crystals inside the cave
+				if TreeGenerator.column_hash(wx, wy ^ wz) % 7 == 0:
+					return reg.get_id(&"CRYSTAL")
+			return BlockRegistry.AIR_ID
+	if id == stone:
+		if wy <= surface_h - 4 and _ore_coal_noise.get_noise_3d(float(wx), float(wy), float(wz)) > 0.22:
+			return reg.get_id(&"COAL")
+		if wy <= surface_h - 14 and _ore_copper_noise.get_noise_3d(float(wx), float(wy), float(wz)) > 0.27:
+			return reg.get_id(&"COPPER")
+	return id
 
 
 ## Fills a cubic block of chunks around center (startup/test path only —

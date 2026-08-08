@@ -80,8 +80,14 @@ column hash, 5x5 lone-tree spacing for border-safe idempotency), surface
 crystal clusters in highlands, spawn protected (meadow plateau, no trees).
 (Deep Caverns underground biome arrives with Phase 10 caves.)
 
-## Phase 10 — Caves / ores [ ]
+## Phase 10 — Caves / ores [x]
 3D-noise caves: tunnels, chambers, shafts, rare crystal caves, ore blobs.
+DONE 2026-08-08: 293/293 assertions (7 caves), boots clean. _carve_and_ore:
+fractal tunnels (abs>0.30), chambers (>0.25), y-stretched shafts (>0.30),
+deep crystal-cave pockets with sparse CRYSTAL, COAL (>0.22, below h-4) and
+COPPER (>0.27, below h-14) blobs; surface 4 layers never carved; thresholds
+calibrated to measured FBM ranges (see TECHNICAL_NOTES). World-coord noise
+=> border-safe by construction.
 
 ## Phase 11 — Day/night / weather [ ]
 Sun/moon/stars cycle on the Phase 1 sky rig; rain, snow, fog (procedural).

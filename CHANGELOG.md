@@ -2,7 +2,20 @@
 
 All notable changes per phase. Newest first.
 
-## [Phase 9] — 2026-08-08
+## [Phase 10] — 2026-08-08
+- **Caves + ores** in `VoxelGenerator._carve_and_ore()`: three 3D-noise
+  carving systems — spaghetti tunnels (abs fractal noise), large chambers
+  (low-frequency), vertical shafts (y-stretched) — plus deep rare crystal
+  caves ("Deep Caverns") that sprinkle CRYSTAL in the carved space, and
+  COAL/COPPER ore blobs replacing stone. Carving never touches the top 4
+  surface layers. All noise sampled at world coordinates → chunk-border-safe
+  by construction.
+- **Calibration lesson**: FastNoiseLite FBM compresses output to ~±0.55 (3
+  octaves) / ~±0.5 (2 octaves); thresholds tuned from measured percentiles
+  (TECHNICAL_NOTES).
+- Tests: 7 new cave assertions (carving happens, surface intact, both ores,
+  crystal caves, determinism, border strip integrity). Total: 293/293
+  passing; boots clean.
 - **BiomeRegistry** (`src/world/biome_registry.gd`): 5 data-driven surface
   biomes (Meadow, Pinewild, Redstone Desert, Frostlands, Crystal Highlands)
   selected by Voronoi over widened temperature/humidity noise; per-biome

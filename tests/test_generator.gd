@@ -76,7 +76,11 @@ func _check_surface_layers() -> void:
 				var b1 := chunk.get_block(Vector3i(local.x, local.y - 1, local.z))
 				_check(b1 == reg.get_id(&"DIRT"), "gen dirt under surface", "got %d" % b1)
 				var deep := chunk.get_block(Vector3i(local.x, maxi(local.y - 8, 0), local.z))
-				_check(deep == reg.get_id(&"STONE"), "gen stone deeper", "got %d" % deep)
+				# deep cells are stone — or cave-carved air / ore (Phase 10);
+				# never surface-layer material
+				_check(deep != reg.get_id(&"GRASS") and deep != reg.get_id(&"DIRT")
+					and deep != reg.get_id(&"SAND") and deep != reg.get_id(&"SNOW"),
+					"gen deep is stone/cave/ore", "got %d" % deep)
 				var above := chunk.get_block(Vector3i(local.x, local.y + 2, local.z))
 				_check(above == BlockRegistry.AIR_ID, "gen air above surface")
 				break

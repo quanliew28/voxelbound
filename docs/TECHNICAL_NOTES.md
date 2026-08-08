@@ -61,6 +61,16 @@ Decisions, pitfalls, and measurements. Append dated entries.
 - Static singleton data: prefer STATIC VAR INITIALIZERS over lazy
   `_ensure()` for pure-data registries (deterministic at class load).
 
+## 2026-08-08 — Phase 10 (caves/ores)
+- **FastNoiseLite FBM output range is compressed**: 3-octave fractal noise
+  returns roughly ±0.55 (not ±1), 2-octave ±0.5, and values cluster near 0
+  (chamber noise p90 was 0.07!). Thresholds calibrated from measured
+  percentiles, never guessed: cave abs 0.30 (~8%), chamber 0.25 (~2%),
+  shaft 0.30 (~10%), crystal region 0.18, coal 0.22, copper 0.27. When
+  tuning procedural noise, ALWAYS probe the distribution first.
+- GDScript: `for cy in [1, 2]` yields an untyped loop var — a subsequent
+  `var wy := cy * 16 + y` fails type inference; annotate `var wy: int`.
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains
