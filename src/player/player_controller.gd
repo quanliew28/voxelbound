@@ -11,8 +11,11 @@ class_name PlayerController
 
 ## The voxel world this player edits (wired by the composition root).
 var world: VoxelWorld = null
-## Block placed by RMB (hotbar drives this from Phase 7 on).
-var selected_block_id: int = 1
+## Player inventory: 36 slots, slots 0..8 are the hotbar (Phase 7).
+var inventory: Inventory = Inventory.new()
+var selected_slot: int = 0
+## Whether the inventory screen is open (input routing handled by HUD).
+var inventory_open: bool = false
 
 const STAND_HEIGHT: float = 1.8
 const STAND_HEAD_Y: float = 1.62
@@ -57,6 +60,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		try_mine()
 	elif event.is_action_pressed("interact_secondary") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		try_place()
+	elif event.is_action_pressed("drop") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		drop_selected()
+	elif event.is_action_pressed("inventory"):
+		inventory_open = not inventory_open
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if inventory_open else Input.MOUSE_MODE_CAPTURED
+	else:
+		for i in Inventory.HOTBAR_SIZE:
+			if event.is_action_pressed("hotbar_%d" % (i + 1)):
+				selected_slot = i
+				break
 
 func _physics_process(delta: float) -> void:
 	var direction: Vector2
@@ -130,6 +143,9 @@ func try_mine() -> void:
 	if id == BlockRegistry.AIR_ID or BlockRegistry.shared().get_hardness(id) <= 0.0:
 		return
 	world.set_block(hit.block_pos, BlockRegistry.AIR_ID)
+	# drops go to the inventory (Phase 7)
+	for drop_name in BlockRegistry.shared().get_drops(id):
+		inventory.add_item(BlockRegistry.shared().get_id(drop_name), 1)
 
 
 func try_place() -> void:
@@ -143,7 +159,29 @@ func try_place() -> void:
 		return
 	if cell_overlaps_player(target):
 		return
-	world.set_block(target, selected_block_id)
+	var stack := inventory.get_slot(selected_slot)
+	if stack == null:
+		return  # nothing selected to place
+	world.set_block(target, stack.item_id)
+	inventory.remove_from_slot(selected_slot, 1)
+
+
+## Drops one unit of the selected hotbar item as a world pickup (Q).
+func drop_selected() -> void:
+	var stack := inventory.get_slot(selected_slot)
+	if stack == null:
+		return
+	var removed := inventory.remove_from_slot(selected_slot, 1)
+	if removed > 0:
+		_spawn_pickup(stack.item_id, 1)
+
+
+func _spawn_pickup(item_id: int, amount: int) -> void:
+	if world == null or get_parent() == null:
+		return
+	var pickup := PickupEntity.new(item_id, amount)
+	pickup.position = global_position + Vector3(0, 0.6, 0) - global_transform.basis.z * 1.2
+	get_parent().add_child(pickup)
 
 
 func _raycast() -> Dictionary:

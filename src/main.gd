@@ -8,11 +8,19 @@ var sun: DirectionalLight3D
 var world: VoxelWorld
 var chunk_manager: ChunkManager
 var player: PlayerController
+var hud: HUD
 
 func _ready() -> void:
 	_build_environment()
 	_build_terrain()
 	_spawn_player()
+	_build_hud()
+
+func _build_hud() -> void:
+	hud = HUD.new()
+	hud.name = "HUD"
+	add_child(hud)
+	hud.player = player
 
 func _build_environment() -> void:
 	world_environment = WorldEnvironment.new()

@@ -140,7 +140,7 @@ func _check_interaction() -> void:
 	player.set_physics_process(false)  # keep the test player exactly where we put it
 	player.global_position = Vector3(0, 2.5, 0)
 	player.world = world
-	player.selected_block_id = reg.get_id(&"GRASS")
+	player.inventory.add_item(reg.get_id(&"GRASS"), 10)
 	var head := player.get_node("Head") as Node3D
 	head.rotation.x = -PI / 2  # look straight down at the stone
 	# place: ray hits stone at (0,0,0), placement cell (0,1,0) is above it

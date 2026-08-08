@@ -51,9 +51,14 @@ owns streaming (Chebyshev xz radii, vertical columns, budgeted threaded
 generation with per-task generators, call_deferred results, periodic unload);
 meshing stays in VoxelWorld. Spawn area pre-filled synchronously.
 
-## Phase 7 — Inventory / hotbar [ ]
+## Phase 7 — Inventory / hotbar [x]
 36 inventory slots + 9 hotbar, stacking, item IDs, selection, pickup/drop,
 hotbar UI + inventory UI (Control nodes only).
+DONE 2026-08-08: 210/210 assertions (20 inventory), boots clean. ItemStack +
+Inventory (64 stacks, overflow semantics), mining drops into inventory,
+placement consumes selected hotbar item, Q drops to PickupEntity (Area3D,
+primitive mesh, walk-over collection), HUD (crosshair, hotbar, E inventory
+screen) built from Control nodes, hotbar keys 1-9.
 
 ## Phase 8 — Crafting / tools [ ]
 Data-driven recipes (original, not Minecraft copies), tool definitions:

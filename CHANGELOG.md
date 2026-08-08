@@ -2,7 +2,20 @@
 
 All notable changes per phase. Newest first.
 
-## [Phase 6] — 2026-08-08
+## [Phase 7] — 2026-08-08
+- **ItemStack + Inventory** (`src/items/`): 36 slots (0..8 hotbar), stacking
+  at 64, add/remove/remove_from_slot/count/find/has_item, overflow returns
+  remainder, `changed` signal for UI.
+- **Player integration**: mining adds registry drops to inventory (GRASS ->
+  DIRT etc.), placement consumes the selected hotbar item, Q drops one unit
+  as a **PickupEntity** (Area3D + primitive box + walk-over collection,
+  despawns after 60s), hotbar keys 1-9 select, E toggles inventory screen.
+- **HUD** (`src/ui/hud.gd`): crosshair, hotbar with selection highlight,
+  full inventory grid — all from Control nodes, label updates only on
+  change. New input actions: hotbar_1..9, drop (Q), inventory (E).
+- Tests: 20 new inventory assertions (stacking/overflow, removal, counts,
+  mine-drops, place-consumes, drop+pickup round trip). Total: 210/210
+  passing; boots clean.
 - **ChunkManager** (`src/world/chunk_manager.gd`): streaming — load/unload
   radii (Chebyshev xz), vertical chunk columns [0, top_chunk_y], generation
   queue sorted by player distance, WorkerThreadPool dispatch (fresh
