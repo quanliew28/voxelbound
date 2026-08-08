@@ -1,0 +1,20 @@
+extends SceneTree
+
+const SUITES: Array[String] = ["res://tests/test_smoke.gd"]
+
+func _initialize() -> void:
+	var total_failures: int = 0
+	var total_passed: int = 0
+	for path in SUITES:
+		var script: GDScript = load(path) as GDScript
+		var suite: RefCounted = script.new()
+		suite.set("tree", self)
+		# Suites are coroutines (they await physics frames). Awaiting the call
+		# directly works for both coroutine and plain-int returns in Godot 4.
+		var result: int = await suite.run()
+		total_failures += result
+		var passed: Variant = suite.get("last_passed")
+		if typeof(passed) == TYPE_INT:
+			total_passed += passed as int
+	print("TESTS: %d passed, %d failed" % [total_passed, total_failures])
+	quit(total_failures)
