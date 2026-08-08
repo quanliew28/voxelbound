@@ -14,6 +14,20 @@ Decisions, pitfalls, and measurements. Append dated entries.
   (`opencode run`, provider omniapi/opencode-go/deepseek-v4-flash);
   Hermes = orchestration + verification.
 
+## 2026-08-08 — Phase 2 (voxel data model)
+- **BlockRegistry = static singleton, NOT autoload** (deviation from the
+  Phase-0 autoload plan, noted in ARCHITECTURE.md §5.2): autoloads in
+  `-s script.gd` headless mode are ambiguous, and a lazy static singleton
+  (`BlockRegistry.shared()`) is deterministic for both tests and the game.
+  Revisit for Kimi review; migration to autoload is a 1-line change.
+- Chunk serialization format frozen at
+  `[u8 version][i32 cx][i32 cy][i32 cz][4096 raw bytes]` (version 1). Save
+  system (Phase 14) consumes this; generation uses `fill()` which dirties but
+  never marks `is_modified` — only `VoxelWorld.set_block()` (gameplay edits)
+  marks modified. This is the entire save-diff contract.
+- GDScript gotcha: `new` is a reserved keyword — cannot be a parameter name
+  (parse error in a lambda here). Renamed to `new_id`.
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains

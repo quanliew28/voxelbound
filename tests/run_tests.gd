@@ -1,6 +1,9 @@
 extends SceneTree
 
-const SUITES: Array[String] = ["res://tests/test_smoke.gd"]
+const SUITES: Array[String] = [
+	"res://tests/test_smoke.gd",
+	"res://tests/test_voxel.gd",
+]
 
 func _initialize() -> void:
 	var total_failures: int = 0

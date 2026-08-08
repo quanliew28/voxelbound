@@ -2,22 +2,22 @@
 
 All notable changes per phase. Newest first.
 
-## [Phase 1] — 2026-08-08
-- Repository initialized; canonical docs set (ARCHITECTURE / ROADMAP /
-  GAME_DESIGN / TECHNICAL_NOTES / TESTING).
-- Godot 4.7 project scaffold: Forward+, 1280x720, full input map
-  (move/jump/sprint/crouch/interact actions).
-- First-person controller (`src/player/player_controller.gd`): mouse look
-  (yaw body / pitch head, ±89°), WASD, walk 4.5 / sprint 7.0 / crouch 2.0,
-  gravity 22, jump 7.5, smooth acceleration, crouch with headroom check and
-  grounded capsule recentering, ESC/click mouse capture toggle,
-  `simulate_for_test()` hook for headless tests.
-- Procedural test terrain (`src/world/test_terrain.gd`, TEMPORARY until
-  Phase 3): 128x128m FastNoiseLite heightmap, analytic normals, vertex-color
-  gradient material, concave collision, `get_height_at()` for spawning.
-- Environment (`src/main.gd` composition root): ProceduralSkyMaterial sky,
-  shadowed directional sun, ACES tonemap, sky ambient — all code-built.
-- Headless test harness (`tests/run_tests.gd` + `tests/test_smoke.gd`):
-  11 assertions (boot, player, gravity, movement, terrain, collision,
-  environment, zero-asset guard) — all passing.
-- Game boots headless 120 frames with zero errors.
+## [Phase 2] — 2026-08-08
+- **BlockRegistry** (`src/world/block_registry.gd`): data-driven block
+  definitions (name, opacity, emissive, hardness, tool affinity, color,
+  drops), StringName<->id mapping, AIR = 0, static singleton access.
+  10 default blocks per GAME_DESIGN (GRASS, DIRT, STONE, SAND, WOOD, LEAF,
+  COAL, COPPER, CRYSTAL). Duplicate/overflow registration refused.
+- **VoxelChunk** (`src/world/voxel_chunk.gd`): pure-data 16^3 storage
+  (PackedByteArray, 4096 bytes), canonical index mapping
+  `x + z*16 + y*256`, bounds-checked get/set, `is_dirty` (mesh rebuild) and
+  `is_modified` (save diff) flags with no-op semantics, `fill()` for
+  generation, frozen serialize/deserialize format (version 1).
+- **VoxelWorld** (`src/world/voxel_world.gd`): chunk map owned by a Node3D,
+  world-space get/set with floor-division mapping (negatives correct),
+  `block_changed(world_pos, old_id, new_id)` signal, get_or_create_chunk,
+  add/remove chunk paths for the future streaming phase.
+- Tests: 85 new voxel assertions (index math, bounds, flags, serialization
+  roundtrip + corrupt input, coordinate mapping, cross-chunk/negative
+  world ops, signal semantics). Total suite: 96/96 passing.
+- Game boots headless with zero errors; no regression to Phase 1.

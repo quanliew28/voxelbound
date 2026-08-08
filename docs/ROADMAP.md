@@ -14,9 +14,13 @@ DONE 2026-08-08: 11/11 smoke assertions pass; game boots 120 frames clean.
 Review fixes: coroutine awaits in test runner, crouch capsule recentering,
 Project.godot -> project.godot case fix.
 
-## Phase 2 — Voxel data model [ ]
+## Phase 2 — Voxel data model [x]
 BlockRegistry, VoxelChunk (16^3, PackedByteArray), VoxelWorld world-space
 get/set, dirty/modified flags, serialization hooks, unit tests.
+DONE 2026-08-08: 85 voxel assertions + 11 smoke = 96/96; game boots clean.
+BlockRegistry is a static singleton (BlockRegistry.shared()) — deviation from
+the autoload plan, documented in TECHNICAL_NOTES. VoxelWorld.set_block is the
+gameplay mutation API (marks modified); generation fills chunks directly.
 
 ## Phase 3 — Chunk meshing [ ]
 VoxelMesher visible-face culling, opaque/transparent/emissive surfaces,

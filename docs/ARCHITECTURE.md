@@ -91,15 +91,18 @@ One canonical design. No agent may substitute its own.
 - Block storage per chunk: `PackedByteArray` of length 16^3 = 4096.
   Block id 0 = AIR, always. Max 255 block types; if we ever exceed that we
   migrate to PackedInt32Array behind the same get/set API (noted, not built).
-- Index math (the ONLY valid mapping, Y-major):
+- Index math (the ONLY valid mapping):
   `index = x + z * 16 + y * 256`
+  (x varies fastest, then z, then y — the per-chunk block buffer is ordered by
+  this formula and NOTHING else may index it.)
 - Chunk coordinate of world position p: `floor(p / 16)` per axis, using
   floor division (GDScript `floori(p / 16.0)`) so negatives behave.
 - Local coordinate: `p - chunk_coord * 16` (always 0..15).
 
 ### 5.2 Core classes
 
-- **BlockRegistry** (autoload, RefCounted data): maps `StringName -> int` and
+- **BlockRegistry** (RefCounted data, reached via `BlockRegistry.shared()` —
+  NOT an autoload; see TECHNICAL_NOTES §2026-08-08): maps `StringName -> int` and
   back; holds per-block definition dictionaries: display name, opaque/transparent,
   emissive, hardness, tool affinity, color(s) for procedural materials,
   drops. All block IDs come from here — numeric IDs NEVER appear scattered in
