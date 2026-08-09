@@ -11,11 +11,15 @@ class_name PlayerController
 
 ## The voxel world this player edits (wired by the composition root).
 var world: VoxelWorld = null
+## Procedural audio manager (wired by main; null in tests is fine).
+var audio: AudioManager = null
 ## Player inventory: 36 slots, slots 0..8 are the hotbar (Phase 7).
 var inventory: Inventory = Inventory.new()
 var selected_slot: int = 0
 ## Whether the inventory screen is open (input routing handled by HUD).
 var inventory_open: bool = false
+
+var _footstep_timer: float = 0.0
 
 const STAND_HEIGHT: float = 1.8
 const STAND_HEAD_Y: float = 1.62
@@ -111,6 +115,16 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= gravity * delta
 	if jump and is_on_floor():
 		velocity.y = jump_velocity
+		if audio != null:
+			audio.jump()
+
+	# footsteps while moving on the ground
+	if is_on_floor() and Vector2(velocity.x, velocity.z).length() > 1.0:
+		_footstep_timer -= delta
+		if _footstep_timer <= 0.0:
+			_footstep_timer = 0.35
+			if audio != null:
+				audio.footstep()
 
 	var target_speed: float = walk_speed
 	if crouch:
@@ -162,6 +176,8 @@ func take_damage(amount: float, from_pos: Vector3) -> void:
 		return
 	hp = maxf(0.0, hp - amount)
 	damaged.emit(amount)
+	if audio != null:
+		audio.player_damage()
 	if from_pos.length_squared() > 0.01:
 		var away := global_position - from_pos
 		away.y = 0.0
@@ -199,6 +215,8 @@ func _handle_melee(delta: float) -> void:
 		return
 	_attack_timer = MELEE_COOLDOWN
 	_mine_progress = 0.0  # melee interrupts mining
+	if audio != null:
+		audio.melee_hit()
 	target.take_damage(float(melee_damage()), -camera.global_transform.basis.z)
 
 
@@ -276,6 +294,8 @@ func try_place() -> void:
 	if stack == null:
 		return  # nothing selected to place
 	world.set_block(target, stack.item_id)
+	if audio != null:
+		audio.block_place()
 	inventory.remove_from_slot(selected_slot, 1)
 
 
@@ -345,6 +365,8 @@ func _mining_speed(block_id: int) -> float:
 
 func _complete_mine(target: Vector3i, id: int) -> void:
 	world.set_block(target, BlockRegistry.AIR_ID)
+	if audio != null:
+		audio.block_break()
 	for drop_name in BlockRegistry.shared().get_drops(id):
 		inventory.add_item(BlockRegistry.shared().get_id(drop_name), 1)
 	_drain_tool()

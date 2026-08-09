@@ -14,6 +14,7 @@ var hud: HUD
 var day_night: DayNight
 var weather: Weather
 var creature_spawner: CreatureSpawner
+var audio: AudioManager
 
 func _ready() -> void:
 	_build_environment()
@@ -23,6 +24,7 @@ func _ready() -> void:
 	_build_day_night()
 	_build_weather()
 	_build_creatures()
+	_build_audio()
 
 func _build_hud() -> void:
 	hud = HUD.new()
@@ -73,6 +75,15 @@ func _build_creatures() -> void:
 	add_child(creature_spawner)
 	creature_spawner.world = world
 	creature_spawner.player = player
+
+func _build_audio() -> void:
+	audio = AudioManager.new()
+	audio.name = "Audio"
+	add_child(audio)
+	player.audio = audio
+	hud.audio = audio
+	creature_spawner.audio = audio
+	audio.start_ambient()
 
 func _build_environment() -> void:
 	world_environment = WorldEnvironment.new()

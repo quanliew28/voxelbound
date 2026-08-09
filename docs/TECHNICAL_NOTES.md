@@ -111,6 +111,15 @@ Decisions, pitfalls, and measurements. Append dated entries.
 - VoxelChunk.serialize() payload is 1 + 12 + 4096 = 4109 bytes (version +
   coord + blocks) — reading exactly 4096 bytes fails deserialize.
 
+## 2026-08-08 — Phase 15 (procedural audio)
+- **AudioStreamGeneratorPlayback.push_buffer takes PackedVector2Array**
+  (interleaved STEREO frames), not PackedFloat32Array — mono streams must be
+  converted to Vector2(v, v) per frame.
+- Unpacking a value from an UNTYPED Dictionary (`var v := entry.samples[i]`)
+  fails type inference ("Cannot infer the type") — annotate `var v: float`.
+- Always check `get_frames_available()` before push_buffer — pushing more
+  than the internal buffer holds silently drops frames.
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains

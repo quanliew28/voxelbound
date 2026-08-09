@@ -6,6 +6,8 @@ class_name CreatureSpawner
 
 var world: VoxelWorld = null
 var player: Node3D = null
+## Procedural audio manager forwarded to spawned creatures (null is fine).
+var audio: AudioManager = null
 
 var creatures: Array[Node] = []
 var max_creatures: int = 12
@@ -65,6 +67,7 @@ func _try_spawn() -> void:
 	var creature := Creature.new(creature_type, _rng.randi())
 	creature.world = world
 	creature.player = player
+	creature.audio = audio
 	creature.died.connect(_on_creature_died)
 	add_child(creature)
 	creature.global_position = pos  # after add_child — global reads need the tree

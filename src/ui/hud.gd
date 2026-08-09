@@ -6,6 +6,8 @@ class_name HUD
 ## changes.
 
 var player: PlayerController = null
+## Procedural audio manager (wired by main; null is fine).
+var audio: AudioManager = null
 
 var _hotbar_slots: Array[PanelContainer] = []
 var _hotbar_names: Array[Label] = []
@@ -185,6 +187,8 @@ func _recipe_label(index: int) -> String:
 
 func _on_craft_pressed(index: int) -> void:
 	if player != null:
+		if audio != null:
+			audio.ui_click()
 		player.craft(index)
 		_refresh_inventory()
 

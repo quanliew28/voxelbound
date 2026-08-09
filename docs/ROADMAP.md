@@ -123,9 +123,14 @@ pos/spawn/hp, 36 inventory slots (id/count/durability), modified chunks via
 VoxelChunk.serialize() — untouched procedural terrain never written. F5 save
 / F9 load wired in main. Corruption/version/missing handled.
 
-## Phase 15 — Procedural audio [ ]
+## Phase 15 — Procedural audio [x]
 AudioStreamGenerator synthesis: footsteps, break/place, jump, damage, combat,
 creatures, UI, ambience. No audio files.
+DONE 2026-08-08: 393/393 assertions (14 audio), boots clean. Synth: pure
+sample recipes (sine/square/saw/noise, envelopes, sweeps) — zero audio
+files. AudioManager: one-shot streaming via get_frames_available chunks
+(stereo push_buffer), looping ambient wind. Wired: footsteps/jump/mine/
+place/damage/melee/pickup/creature-hurt/craft-click.
 
 ## Phase 16 — Particles / effects [ ]
 GPUParticles3D with procedural materials: block debris, dust, rain, snow,

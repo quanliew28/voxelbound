@@ -2,6 +2,24 @@
 
 All notable changes per phase. Newest first.
 
+## [Phase 15] — 2026-08-08
+- **Synth** (`src/audio/synth.gd`): pure procedural sample recipes at
+  22050 Hz — sine/square/saw/noise with attack/decay envelopes and
+  frequency sweeps: footstep, block_break, block_place, jump,
+  player_damage, melee_hit, creature_hurt, pickup, ui_click, ambient_wind
+  (4 s looping noise bed). Zero audio files.
+- **AudioManager** (`src/audio/audio_manager.gd`): AudioStreamGenerator
+  one-shots streamed in chunks bounded by get_frames_available() and freed
+  when drained; looping ambient wind; volume-trimmed API per sound.
+- **Wired into gameplay**: player footsteps/jump/mine/place/damage/melee,
+  pickup collection, creature hurt, HUD craft click; ambient wind starts
+  with the game.
+- **Bug found**: AudioStreamGeneratorPlayback.push_buffer takes stereo
+  PackedVector2Array (not mono floats); untyped dict access needs explicit
+  `var v: float` (Variant can't infer). TECHNICAL_NOTES updated.
+- Tests: 14 new audio assertions (durations, clamping, distinctness,
+  one-shot lifecycle, ambient). Total: 393/393 passing; boots clean.
+
 ## [Phase 14] — 2026-08-08
 - **SaveManager** (`src/save/save_manager.gd`): versioned binary save/load
   (magic "VB1" + version byte, FileAccess). Writes world seed, day time,

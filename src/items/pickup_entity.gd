@@ -36,7 +36,10 @@ func _process(delta: float) -> void:
 
 func _on_body_entered(body: Node3D) -> void:
 	if body is PlayerController:
-		var overflow := (body as PlayerController).inventory.add_item(item_id, count)
+		var player := body as PlayerController
+		var overflow := player.inventory.add_item(item_id, count)
+		if player.audio != null:
+			player.audio.pickup()
 		if overflow == 0:
 			queue_free()
 		else:

@@ -40,6 +40,8 @@ signal died(creature: Node)
 var type: int = Type.BURROWER
 var world: VoxelWorld = null
 var player: Node3D = null
+## Procedural audio manager (wired by the spawner's owner; null is fine).
+var audio: AudioManager = null
 var home: Vector3
 var state: int = State.IDLE
 var target: Vector3
@@ -162,6 +164,8 @@ func take_damage(amount: float, knockback_dir: Vector3) -> bool:
 	if hp <= 0.0:
 		return false
 	hp -= amount
+	if audio != null:
+		audio.creature_hurt()
 	if knockback_dir.length() > 0.01:
 		_knockback = knockback_dir.normalized() * 5.0
 	if hp <= 0.0:
