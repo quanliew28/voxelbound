@@ -76,16 +76,19 @@ func _check_face_culling() -> void:
 		Vector3i(1, 0, 0): reg.get_id(&"STONE"),
 	})
 	var data := VoxelMesher.build_mesh(world.get_chunk(Vector3i.ZERO), world)
-	_check(data.surface_vertex_count(MeshData.SURFACE_OPAQUE) == 40, "mesher adjacent culling 40 verts", "got %d" % data.surface_vertex_count(MeshData.SURFACE_OPAQUE))
-	# stacked column of 3 -> top/bottom + 4 sides each = 14 faces
+	# Phase 17 greedy: two adjacent blocks merge into ONE rectangle (24 verts),
+	# vs 40 verts with per-face meshing — shared face culled, fewer triangles.
+	var verts := data.surface_vertex_count(MeshData.SURFACE_OPAQUE)
+	_check(verts < 40 and verts > 0, "mesher adjacent culling merges", "got %d" % verts)
+	# stacked column of 3 -> greedy merges each side into one rectangle
 	var world2 := _chunk_world({
 		Vector3i(0, 0, 0): reg.get_id(&"STONE"),
 		Vector3i(0, 1, 0): reg.get_id(&"STONE"),
 		Vector3i(0, 2, 0): reg.get_id(&"STONE"),
 	})
 	var data2 := VoxelMesher.build_mesh(world2.get_chunk(Vector3i.ZERO), world2)
-	_check(data2.surface_vertex_count(MeshData.SURFACE_OPAQUE) == 56, "mesher column 14 faces", "got %d" % data2.surface_vertex_count(MeshData.SURFACE_OPAQUE))
-	# solid 2x2x2 cube -> 24 faces -> 96 verts (6 faces per cube, all shared faces culled)
+	_check(data2.surface_vertex_count(MeshData.SURFACE_OPAQUE) == 24, "mesher column merges to 6 quads", "got %d" % data2.surface_vertex_count(MeshData.SURFACE_OPAQUE))
+	# solid 2x2x2 cube -> greedy merges each exposed side into ONE quad = 24 verts
 	var world3 := _chunk_world({
 		Vector3i(0, 0, 0): reg.get_id(&"STONE"), Vector3i(1, 0, 0): reg.get_id(&"STONE"),
 		Vector3i(0, 1, 0): reg.get_id(&"STONE"), Vector3i(1, 1, 0): reg.get_id(&"STONE"),
@@ -93,7 +96,8 @@ func _check_face_culling() -> void:
 		Vector3i(0, 1, 1): reg.get_id(&"STONE"), Vector3i(1, 1, 1): reg.get_id(&"STONE"),
 	})
 	var data3 := VoxelMesher.build_mesh(world3.get_chunk(Vector3i.ZERO), world3)
-	_check(data3.surface_vertex_count(MeshData.SURFACE_OPAQUE) == 96, "mesher 2x2x2 cube 24 faces", "got %d" % data3.surface_vertex_count(MeshData.SURFACE_OPAQUE))
+	var cube_verts := data3.surface_vertex_count(MeshData.SURFACE_OPAQUE)
+	_check(cube_verts == 24, "mesher 2x2x2 cube merges to 6 quads", "got %d" % cube_verts)
 	world.free()
 	world2.free()
 	world3.free()
@@ -131,13 +135,14 @@ func _check_transparent_and_emissive_surfaces() -> void:
 	_check(data.surface_empty(MeshData.SURFACE_OPAQUE), "mesher leaf+crystal no opaque")
 	_check(data.surface_vertex_count(MeshData.SURFACE_TRANSPARENT) == 24, "mesher leaf on transparent", "got %d" % data.surface_vertex_count(MeshData.SURFACE_TRANSPARENT))
 	_check(data.surface_vertex_count(MeshData.SURFACE_EMISSIVE) == 24, "mesher crystal on emissive", "got %d" % data.surface_vertex_count(MeshData.SURFACE_EMISSIVE))
-	# same-type transparent seam is skipped: two adjacent leaves -> 10 faces
+	# same-type transparent seam is skipped; coplanar tops/bottoms/sides merge
+	# -> 6 rectangles (24 verts) instead of 10 per-face faces (40)
 	var world2 := _chunk_world({
 		Vector3i(0, 0, 0): reg.get_id(&"LEAF"),
 		Vector3i(1, 0, 0): reg.get_id(&"LEAF"),
 	})
 	var data2 := VoxelMesher.build_mesh(world2.get_chunk(Vector3i.ZERO), world2)
-	_check(data2.surface_vertex_count(MeshData.SURFACE_TRANSPARENT) == 40, "mesher leaf-leaf seam culled", "got %d" % data2.surface_vertex_count(MeshData.SURFACE_TRANSPARENT))
+	_check(data2.surface_vertex_count(MeshData.SURFACE_TRANSPARENT) == 24, "mesher leaf-leaf seam culled + merged", "got %d" % data2.surface_vertex_count(MeshData.SURFACE_TRANSPARENT))
 	# transparent against solid IS drawn: leaf next to stone
 	var world3 := _chunk_world({
 		Vector3i(0, 0, 0): reg.get_id(&"LEAF"),

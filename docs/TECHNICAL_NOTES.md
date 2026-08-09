@@ -128,6 +128,17 @@ Decisions, pitfalls, and measurements. Append dated entries.
 - (Reminder: every coroutine check in a suite's run() must be `await`ed —
   this suite initially shipped two un-awaited checks and silently ran 2 of 4.)
 
+## 2026-08-08 — Phase 17 (greedy meshing)
+- Greedy meshing: per direction, build a 16x16 visible-face mask per slice,
+  then pack maximal same-id rectangles (extend width, then height while the
+  whole row matches AND is uncovered) — one quad per rectangle. Keep the
+  winding rule by choosing the index pattern from the sign of
+  (u_vec x v_vec).n; a dynamically-chosen pattern passes the existing
+  cross-opposes-normal regression test with no special-casing per axis.
+- Mesh-data tests that assert per-face vertex counts MUST be updated when
+  meshing changes (counts are an implementation detail; merge behavior and
+  seam culling are the invariants).
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains

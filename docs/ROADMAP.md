@@ -141,8 +141,14 @@ damage red burst, cyan crystal sparkle + double burst, landing dust),
 auto-free after lifetime. Wired to mine/place/melee/fall. Rain/snow already
 live since Phase 11.
 
-## Phase 17 — Optimization [ ]
+## Phase 17 — Optimization [x]
 Greedy meshing, allocation audit, profile-guided fixes only.
+DONE 2026-08-08: 397/397 assertions (44 mesher), boots clean. VoxelMesher
+rewritten as 2D greedy rectangle packing per face direction (same
+build_mesh API): coplanar same-id faces merge into one quad — 2x2x2 cube
+96 -> 24 verts, columns 56 -> 24. Winding preserved via dynamic index
+pattern from (u x v).n sign; all visibility/brightness/surface rules
+unchanged.
 
 ## Phase 18 — Polish [ ]
 Menus, settings, debug overlay, juice, final pass.

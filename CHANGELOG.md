@@ -2,6 +2,18 @@
 
 All notable changes per phase. Newest first.
 
+## [Phase 17] — 2026-08-08
+- **Greedy meshing** in `VoxelMesher` (same public API): per face direction,
+  16 slices each build a 16x16 visible-face mask, then 2D greedy rectangle
+  packing emits ONE quad per maximal same-id run. Terrain triangles drop
+  5-20x; a 2x2x2 cube goes 96 -> 24 verts, a 3-block column 56 -> 24.
+- Winding preserved: the index pattern is chosen from the sign of
+  (u x v).n so triangle crosses always oppose the normal (the Phase 3
+  winding regression test passes unchanged).
+- Mesher tests updated from per-face counts to greedy-consistent
+  expectations (merging + seam culling still verified).
+- Total: 397/397 passing; boots clean.
+
 ## [Phase 16] — 2026-08-08
 - **ParticleFX** (`src/fx/particle_fx.gd`): procedural one-shot particle
   bursts — block debris (cube mesh tinted with the block color), block
