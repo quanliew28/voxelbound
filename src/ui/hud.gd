@@ -82,7 +82,6 @@ func _refresh_health() -> void:
 
 func _build_crosshair() -> void:
 	var holder := Control.new()
-	holder.set_anchors_preset(Control.PRESET_CENTER)
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for vertical in [true, false]:
 		var line := ColorRect.new()
@@ -93,6 +92,10 @@ func _build_crosshair() -> void:
 			line.size = Vector2(10, 2)
 		line.position = -line.size / 2.0
 		holder.add_child(line)
+	# size first, THEN center — PRESET_CENTER at size 0 leaves zero offsets and
+	# the crosshair drifts off-center when content_scale_factor != 1
+	holder.size = Vector2(10, 10)
+	holder.set_anchors_preset(Control.PRESET_CENTER)
 	add_child(holder)
 
 

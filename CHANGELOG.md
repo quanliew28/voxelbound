@@ -2,7 +2,19 @@
 
 All notable changes per phase. Newest first.
 
-## [Phase 18] — 2026-08-08
+## [UI scaling] — 2026-08-08
+- `display/window/stretch/mode=canvas_items` + `aspect=keep` so every
+  Control UI scales with the window; UI Scale slider (0.75-1.5) in the
+  pause menu, live via `window.content_scale_factor`, persisted.
+- **Fix: overlays out of bounds at max scale.** The pause menu / crosshair
+  called `PRESET_CENTER` before their size existed (zero offsets) and the
+  full-rect overlay root resolved to a zero-size rect under the root
+  viewport — both drifted offscreen at 1.5x. PauseMenu is now a full-rect
+  overlay (explicit `size = get_viewport_rect().size` in _ready + _process)
+  with a CenterContainer + inner panel + dim backdrop; MainMenu restructured
+  to a centered VBox; crosshair sizes itself before centering. Verified
+  centered (<1.5 px drift) at 1.0/1.5/0.75 by regression test.
+- Tests: 419/419 passing; boots clean.
 - **MainMenu** (`src/ui/main_menu.gd`, `scenes/menu.tscn`): procedural title
   screen — VOXELBOUND title, Start Game -> main scene, Quit. Now the boot
   scene (project run/main_scene).

@@ -9,6 +9,7 @@ var _failed: int = 0
 func run() -> int:
 	_check_settings_roundtrip()
 	await _check_ui_scale_apply()
+	await _check_ui_scale_centering()
 	await _check_menu_builds()
 	await _check_pause_flow()
 	await _check_debug_overlay()
@@ -61,21 +62,47 @@ func _check_ui_scale_apply() -> void:
 	await tree.physics_frame
 
 
+## The pause panel must stay centered in the visible canvas at every scale
+## (regression: PRESET_CENTER at size 0 made it drift offscreen at 1.5x).
+func _check_ui_scale_centering() -> void:
+	var window := tree.root.get_window()
+	var before := window.content_scale_factor
+	var menu := PauseMenu.new()
+	tree.root.add_child(menu)
+	await tree.physics_frame
+	for factor in [1.0, 1.5, 0.75]:
+		window.content_scale_factor = factor
+		await tree.physics_frame
+		await tree.physics_frame
+		var canvas_center := menu.get_viewport_rect().size * 0.5
+		var panel_center := menu.panel.get_global_rect().get_center()
+		var drift := panel_center.distance_to(canvas_center)
+		_check(drift < 1.5, "pause panel centered at scale %.2f" % factor,
+			"drift %.2f (canvas %s)" % [drift, str(menu.get_viewport_rect().size)])
+	window.content_scale_factor = before
+	menu.queue_free()
+	await tree.physics_frame
+
+
 func _check_menu_builds() -> void:
 	var menu := preload("res://scenes/menu.tscn").instantiate()
 	tree.root.add_child(menu)
 	await tree.physics_frame
-	var buttons := 0
-	var labels := 0
-	for child in menu.get_children():
-		if child is Button:
-			buttons += 1
-		elif child is Label:
-			labels += 1
-	_check(buttons >= 2, "main menu has start + quit buttons", "%d buttons" % buttons)
-	_check(labels >= 2, "main menu has title + subtitle", "%d labels" % labels)
+	var counts := [0, 0]  # [buttons, labels] — mutable array, by-ref
+	_count_controls(menu, counts)
+	_check(counts[0] >= 2, "main menu has start + quit buttons", "%d buttons" % counts[0])
+	_check(counts[1] >= 2, "main menu has title + subtitle", "%d labels" % counts[1])
 	menu.queue_free()
 	await tree.physics_frame
+
+
+func _count_controls(node: Node, counts: Array) -> void:
+	for child in node.get_children():
+		if child is Button:
+			counts[0] += 1
+		elif child is Label:
+			counts[1] += 1
+		_count_controls(child, counts)
 
 
 func _check_pause_flow() -> void:

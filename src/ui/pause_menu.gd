@@ -1,7 +1,9 @@
-extends PanelContainer
+extends Control
 class_name PauseMenu
-## Pause overlay (ESC): resume, sensitivity setting, save & quit to menu,
-## quit to desktop. Built from Control nodes; runs while the tree is paused.
+## Pause overlay (ESC): resume, sensitivity + UI scale settings, save & quit
+## to menu, quit to desktop. Built from Control nodes; runs while the tree
+## is paused. Full-rect overlay + CenterContainer so the panel stays
+## centered at ANY content_scale_factor (UI scaling).
 
 signal resume_pressed
 signal quit_to_menu_pressed
@@ -11,10 +13,12 @@ signal ui_scale_changed(value: float)
 
 var _sensitivity_slider: HSlider
 var _ui_scale_slider: HSlider
+var panel: PanelContainer
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	size = get_viewport_rect().size  # initial fill (see _process)
 	_build()
 
 
@@ -24,12 +28,30 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+func _process(_delta: float) -> void:
+	# Explicitly fill the visible canvas: anchors against a non-Control
+	# parent (root viewport) can resolve to zero in some environments, which
+	# would leave the overlay — and its centering — sized 0.
+	size = get_viewport_rect().size
+
+
 func _build() -> void:
-	set_anchors_preset(Control.PRESET_CENTER)
-	custom_minimum_size = Vector2(340, 280)
+	set_anchors_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# dim the game behind the menu
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.5)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
+	panel = PanelContainer.new()
+	center.add_child(panel)
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 10)
-	add_child(vbox)
+	panel.add_child(vbox)
 	var title := Label.new()
 	title.text = "PAUSED"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

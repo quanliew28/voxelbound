@@ -149,6 +149,25 @@ Decisions, pitfalls, and measurements. Append dated entries.
 - In headless test runs the window exists (DisplayServer headless) and
   content_scale_factor round-trips fine — no special-casing needed.
 
+## 2026-08-08 — UI scaling fix (overlays at max scale)
+- **Bug**: `set_anchors_preset(PRESET_CENTER)` on a Control whose size is
+  still 0 (called before children build) leaves zero offsets — the pause
+  menu/crosshair then drift offscreen when `content_scale_factor` != 1.
+  Root cause of the 1.5x pause screen: a Control directly under the root
+  VIEWPORT gets anchors that resolve to a ZERO-size rect in some
+  environments — full-rect overlays never filled anything.
+- **Fix pattern (use for any overlay)**: root Control sized explicitly to
+  `get_viewport_rect().size` in `_ready` AND `_process`
+  (process_mode must be WHEN_PAUSED — its _process does not run while
+  unpaused, so _ready must do the initial fill), with a full-rect
+  CenterContainer inside; the child panel then centers in the VISIBLE
+  canvas at any scale. CenterContainer >= PRESET_CENTER for overlays.
+- Note: with canvas_items stretch, `get_viewport_rect()` returns the
+  SCALED canvas size (1280/1.5 = 853 x 480 at 1.5x) — the canvas-space
+  center is the correct expectation; comparing against the window size is
+  wrong. Regression test: panel center vs `menu.get_viewport_rect().size *
+  0.5` at factors 1.0/1.5/0.75.
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains
