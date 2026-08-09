@@ -2,6 +2,7 @@ extends Node3D
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/player.tscn")
 const WORLD_SEED: int = 424242
+const SAVE_PATH := "user://world_save.vb"
 
 var world_environment: WorldEnvironment
 var sun: DirectionalLight3D
@@ -121,6 +122,31 @@ func _build_terrain() -> void:
 func _process(_delta: float) -> void:
 	if chunk_manager != null and player != null:
 		chunk_manager.set_player_position(player.global_position)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("save_game"):
+		_save_game()
+	elif event.is_action_pressed("load_game"):
+		_load_game()
+
+
+func _save_game() -> void:
+	if day_night != null and SaveManager.save_game(SAVE_PATH, world, player, day_night.day_time):
+		print("VOXELBOUND: game saved")
+	else:
+		print("VOXELBOUND: save failed")
+
+
+func _load_game() -> void:
+	var data := SaveManager.load_game(SAVE_PATH)
+	if data.is_empty():
+		print("VOXELBOUND: no save found")
+		return
+	SaveManager.apply_load(world, player, data)
+	if day_night != null and data.has("time"):
+		day_night.day_time = float(data["time"])
+	print("VOXELBOUND: game loaded")
+
 
 func _spawn_player() -> void:
 	player = PLAYER_SCENE.instantiate() as PlayerController

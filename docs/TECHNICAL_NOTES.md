@@ -101,6 +101,16 @@ Decisions, pitfalls, and measurements. Append dated entries.
 - `Inventory` has no `set_slot` — use `add_item` (fills slot 0 of an empty
   inventory) and select the resulting slot explicitly.
 
+## 2026-08-08 — Phase 14 (save/load)
+- **Typed var assignment of null throws in GDScript**: `var slot: Dictionary =
+  data[i]` errors when the value is null — use an untyped `var slot = ...`
+  and null-check when serialized arrays may hold empties.
+- `Vector3i(3.5, 40.0, 2.5)` truncates to (3, 40, 2) — comparing a float
+  position against a Vector3i target fails by ~0.7 units. Keep float
+  comparisons in Vector3.
+- VoxelChunk.serialize() payload is 1 + 12 + 4096 = 4109 bytes (version +
+  coord + blocks) — reading exactly 4096 bytes fails deserialize.
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains

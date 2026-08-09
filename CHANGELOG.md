@@ -2,6 +2,20 @@
 
 All notable changes per phase. Newest first.
 
+## [Phase 14] — 2026-08-08
+- **SaveManager** (`src/save/save_manager.gd`): versioned binary save/load
+  (magic "VB1" + version byte, FileAccess). Writes world seed, day time,
+  player position/spawn/hp, all 36 inventory slots (id/count/durability)
+  and ONLY modified chunks (VoxelChunk.serialize, 4109-byte payloads).
+  Corrupt magic / wrong version / missing file all return {} safely.
+  apply_load() restores chunks + player state into a live world.
+- **F5/F9**: save_game / load_game input actions wired in main.gd
+  (user://world_save.vb).
+- **Inventory.set_stack()** added (needed by save restore).
+- Tests: 20 new save assertions (roundtrip incl. tool durability, diff-only,
+  corruption/version/missing rejection, apply to fresh world, has_save).
+  Total: 379/379 passing; boots clean.
+
 ## [Phase 13] — 2026-08-08
 - **Player combat**: melee LMB (tool damage from registry or barehand 1,
   0.5 s cooldown, nearest creature in front within 3 m — interrupts

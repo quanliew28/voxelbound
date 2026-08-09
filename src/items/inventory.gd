@@ -99,3 +99,12 @@ func find_slot(id: int) -> int:
 		if slots[i] != null and slots[i].item_id == id:
 			return i
 	return -1
+
+
+## Directly sets a slot (save/load + tests). Clamps to a valid index.
+func set_stack(index: int, stack: ItemStack) -> bool:
+	if index < 0 or index >= slots.size():
+		return false
+	slots[index] = stack
+	_emit()
+	return true

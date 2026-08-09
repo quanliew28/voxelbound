@@ -115,8 +115,13 @@ Creature: hp/damage/drops data, take_damage + died signal, contact attacks
 assertions in daynight/creatures suites (missing `await` on coroutine checks
 — TECHNICAL_NOTES).
 
-## Phase 14 — Save/load [ ]
+## Phase 14 — Save/load [x]
 Seed + time + player + inventory + modified-chunk diffs only (ARCHITECTURE.md §10).
+DONE 2026-08-08: 379/379 assertions (20 save), boots clean. SaveManager
+(magic "VB1" + version byte, binary FileAccess): seed, day time, player
+pos/spawn/hp, 36 inventory slots (id/count/durability), modified chunks via
+VoxelChunk.serialize() — untouched procedural terrain never written. F5 save
+/ F9 load wired in main. Corruption/version/missing handled.
 
 ## Phase 15 — Procedural audio [ ]
 AudioStreamGenerator synthesis: footsteps, break/place, jump, damage, combat,
