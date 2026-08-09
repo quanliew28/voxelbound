@@ -150,5 +150,9 @@ build_mesh API): coplanar same-id faces merge into one quad — 2x2x2 cube
 pattern from (u x v).n sign; all visibility/brightness/surface rules
 unchanged.
 
-## Phase 18 — Polish [ ]
+## Phase 18 — Polish [x]
 Menus, settings, debug overlay, juice, final pass.
+DONE 2026-08-08: 410/410 assertions (13 polish), boots clean. MainMenu title
+screen (start/quit, boot scene), PauseMenu (ESC, resume, sensitivity slider
+persisted to user://settings.cfg, save & quit to menu), DebugOverlay (F3:
+FPS/pos/HP/biome/chunks/time/weather). VOXELBOUND 1.0 — all 18 phases done.

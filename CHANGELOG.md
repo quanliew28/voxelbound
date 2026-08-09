@@ -2,6 +2,22 @@
 
 All notable changes per phase. Newest first.
 
+## [Phase 18] — 2026-08-08
+- **MainMenu** (`src/ui/main_menu.gd`, `scenes/menu.tscn`): procedural title
+  screen — VOXELBOUND title, Start Game -> main scene, Quit. Now the boot
+  scene (project run/main_scene).
+- **PauseMenu** (`src/ui/pause_menu.gd`): ESC pauses the tree (menu runs
+  WHEN_PAUSED), Resume, mouse-sensitivity slider persisted through
+  `Settings` (user://settings.cfg, ConfigFile), Save & Quit to Menu
+  (autosaves first), Quit.
+- **DebugOverlay** (`src/ui/debug_overlay.gd`): F3 toggles FPS / position /
+  HP / biome / chunk count / day time / weather.
+- All three built entirely from Control nodes — zero assets, consistent with
+  the whole game.
+- Tests: 13 new polish assertions (settings roundtrip, menu buttons/labels,
+  pause flow, debug overlay toggle + text). Total: **410/410 passing; boots
+  clean. VOXELBOUND 1.0 — all 18 phases complete.**
+
 ## [Phase 17] — 2026-08-08
 - **Greedy meshing** in `VoxelMesher` (same public API): per face direction,
   16 slices each build a 16x16 visible-face mask, then 2D greedy rectangle

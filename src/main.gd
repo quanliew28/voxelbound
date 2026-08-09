@@ -16,6 +16,8 @@ var weather: Weather
 var creature_spawner: CreatureSpawner
 var audio: AudioManager
 var fx: ParticleFX
+var pause_menu: PauseMenu
+var debug_overlay: DebugOverlay
 
 func _ready() -> void:
 	_build_environment()
@@ -27,6 +29,8 @@ func _ready() -> void:
 	_build_creatures()
 	_build_audio()
 	_build_fx()
+	_build_pause_menu()
+	_build_debug_overlay()
 
 func _build_hud() -> void:
 	hud = HUD.new()
@@ -93,6 +97,43 @@ func _build_fx() -> void:
 	add_child(fx)
 	player.fx = fx
 
+func _build_pause_menu() -> void:
+	pause_menu = PauseMenu.new()
+	pause_menu.name = "PauseMenu"
+	add_child(pause_menu)
+	pause_menu.visible = false
+	pause_menu.resume_pressed.connect(_resume_game)
+	pause_menu.quit_to_menu_pressed.connect(_quit_to_menu)
+	pause_menu.quit_pressed.connect(func() -> void: get_tree().quit())
+	pause_menu.sensitivity_changed.connect(func(v: float) -> void: player.mouse_sensitivity = v)
+	player.mouse_sensitivity = Settings.load_sensitivity()
+
+func _build_debug_overlay() -> void:
+	debug_overlay = DebugOverlay.new()
+	debug_overlay.name = "DebugOverlay"
+	add_child(debug_overlay)
+	debug_overlay.player = player
+	debug_overlay.world = world
+	debug_overlay.day_night = day_night
+	debug_overlay.weather = weather
+
+func pause_game() -> void:
+	if player.inventory_open:
+		return
+	get_tree().paused = true
+	pause_menu.visible = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _resume_game() -> void:
+	get_tree().paused = false
+	pause_menu.visible = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func _quit_to_menu() -> void:
+	_save_game()
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://scenes/menu.tscn")
+
 func _build_environment() -> void:
 	world_environment = WorldEnvironment.new()
 	world_environment.name = "WorldEnvironment"
@@ -147,6 +188,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_save_game()
 	elif event.is_action_pressed("load_game"):
 		_load_game()
+	elif event.is_action_pressed("ui_cancel") and not get_tree().paused and not player.inventory_open:
+		pause_game()
+	elif event.is_action_pressed("debug"):
+		debug_overlay.toggle()
 
 
 func _save_game() -> void:
