@@ -8,11 +8,11 @@ var _failed: int = 0
 
 func run() -> int:
 	_check_elevation_math()
-	_check_time_advances()
+	await _check_time_advances()
 	_check_sun_moon_opposition()
 	_check_light_energies()
 	_check_ambient_cycle()
-	_check_weather_states()
+	await _check_weather_states()
 	_check_weather_determinism()
 	_check_cold_biome_snow()
 	print("SUITE daynight: %d passed, %d failed" % [last_passed, _failed])
@@ -41,9 +41,15 @@ func _check_elevation_math() -> void:
 
 func _check_time_advances() -> void:
 	var dn := DayNight.new()
+	var sun := DirectionalLight3D.new()
+	var moon := DirectionalLight3D.new()
+	var env := WorldEnvironment.new()
+	env.environment = Environment.new()
+	env.environment.sky = Sky.new()
+	env.environment.sky.sky_material = ProceduralSkyMaterial.new()
+	dn.setup(sun, moon, env, null)
 	tree.root.add_child(dn)
 	dn.day_length_seconds = 60.0
-	dn.start_time = 0.5
 	var before := dn.day_time
 	await tree.physics_frame
 	await tree.physics_frame

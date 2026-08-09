@@ -2,6 +2,23 @@
 
 All notable changes per phase. Newest first.
 
+## [Phase 13] — 2026-08-08
+- **Player combat**: melee LMB (tool damage from registry or barehand 1,
+  0.5 s cooldown, nearest creature in front within 3 m — interrupts
+  mining), take_damage with knockback + damaged signal + respawn on death
+  (spawn_point, full HP), fall damage ((speed-14)*2 above 14 m/s), head bob
+  (pure bob_offset() + phase accumulator).
+- **Creature combat**: hp/damage/drops in the data table, take_damage with
+  knockback + died signal, aggressive creatures in contact attack the player
+  every 1 s; spawner spawns PickupEntity drops on death.
+- **HUD**: health bar + red damage flash.
+- **Test-infra bug (important)**: calling a coroutine check function WITHOUT
+  `await` in a suite's run() silently DROPS it (GDScript abandons the
+  coroutine at its first await) — daynight, creatures and combat suites were
+  under-reporting by 7+14+12 checks. All check calls are now awaited;
+  per-suite totals verified against the check count. TECHNICAL_NOTES updated.
+- Tests: 16 new combat assertions. Total: 359/359 passing; boots clean.
+
 ## [Phase 12] — 2026-08-08
 - **Creature** (`src/creatures/creature.gd`): 5 data-driven types (Burrower,
   Stoneback, Glow Moth, Nightcrawler, Forest Stalker) with

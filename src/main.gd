@@ -28,6 +28,7 @@ func _build_hud() -> void:
 	hud.name = "HUD"
 	add_child(hud)
 	hud.player = player
+	player.damaged.connect(hud.on_player_damaged)
 
 func _build_day_night() -> void:
 	# moon: dim bluish light opposite the sun (driven by DayNight)
@@ -126,5 +127,6 @@ func _spawn_player() -> void:
 	player.name = "Player"
 	var ground_y := float(world.generator.height_at(0, 0))
 	player.position = Vector3(0.0, ground_y + 1.5, 0.0)
+	player.spawn_point = player.position
 	add_child(player)
 	player.world = world

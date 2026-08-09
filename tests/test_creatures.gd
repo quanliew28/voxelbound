@@ -8,13 +8,13 @@ var _failed: int = 0
 
 func run() -> int:
 	_check_type_data()
-	_check_body_built()
-	_check_wander()
-	_check_chase()
-	_check_flee()
-	_check_return()
-	_check_wander_determinism()
-	_check_spawner()
+	await _check_body_built()
+	await _check_wander()
+	await _check_chase()
+	await _check_flee()
+	await _check_return()
+	await _check_wander_determinism()
+	await _check_spawner()
 	print("SUITE creatures: %d passed, %d failed" % [last_passed, _failed])
 	return _failed
 
@@ -135,7 +135,7 @@ func _check_return() -> void:
 	c.state = Creature.State.RETURN
 	c.target = c.home
 	c.player = null
-	for i in 60:
+	for i in 15:  # short window: return (0.7m) then IDLE (>= 2s) — before any wander
 		c._process(0.1)
 	_check(c.global_position.distance_to(c.home) < 1.0, "creature returns home")
 	_check(c.state == Creature.State.IDLE, "return ends in idle")

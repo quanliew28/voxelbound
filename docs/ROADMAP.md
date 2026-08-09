@@ -105,8 +105,15 @@ DONE 2026-08-08: 322/322 assertions (16 creatures), boots clean. Creature
 (data-driven types, kinematic Node3D, terrain-snapped, seeded wander),
 CreatureSpawner (biome pools, capped, despawn far).
 
-## Phase 13 — Combat [ ]
+## Phase 13 — Combat [x]
 Melee, health, damage, knockback, death, drops; player fall damage + head bob.
+DONE 2026-08-08: 359/359 assertions (16 combat), boots clean. Player
+melee (tool damage or barehand, 0.5s cooldown, creature-in-front targeting),
+take_damage + knockback + respawn, fall damage (>14 m/s), head bob.
+Creature: hp/damage/drops data, take_damage + died signal, contact attacks
+(1s cooldown), spawner drops. NOTE: recovered 24 silently-dropped async
+assertions in daynight/creatures suites (missing `await` on coroutine checks
+— TECHNICAL_NOTES).
 
 ## Phase 14 — Save/load [ ]
 Seed + time + player + inventory + modified-chunk diffs only (ARCHITECTURE.md §10).

@@ -90,6 +90,17 @@ Decisions, pitfalls, and measurements. Append dated entries.
   add_child before relying on global transforms, and production code must
   add_child BEFORE setting global_position.
 
+## 2026-08-08 — Phase 13 (combat)
+- **Calling a coroutine function WITHOUT `await` silently drops it**: a
+  function containing `await` called bare from a suite's run() runs only
+  until its first await, then is abandoned — the remaining checks NEVER
+  execute and the suite under-reports. ALWAYS `await` check calls in run().
+  This hid 24 assertions across daynight/creatures suites.
+- GDScript lambda captures are BY VALUE for locals — a lambda mutating an
+  outer bool doesn't change it; use a mutable container (e.g. `[false]`).
+- `Inventory` has no `set_slot` — use `add_item` (fills slot 0 of an empty
+  inventory) and select the resulting slot explicitly.
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains

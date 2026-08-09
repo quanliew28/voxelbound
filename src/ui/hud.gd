@@ -13,6 +13,10 @@ var _hotbar_counts: Array[Label] = []
 var _inv_slots: Array[PanelContainer] = []
 var _inv_labels: Array[Label] = []
 var _craft_buttons: Array[Button] = []
+var _hp_bar: ColorRect
+var _hp_bg: PanelContainer
+var _flash: ColorRect
+var _flash_alpha: float = 0.0
 var _inventory_panel: PanelContainer
 
 const SLOT_SIZE: Vector2 = Vector2(36, 36)
@@ -22,19 +26,57 @@ const HOTBAR_Y_OFFSET: float = -56.0
 func _ready() -> void:
 	_build_crosshair()
 	_build_hotbar()
+	_build_health_ui()
 	_build_inventory_panel()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if player == null:
 		return
 	_refresh_hotbar()
 	if _inventory_panel.visible != player.inventory_open:
 		_inventory_panel.visible = player.inventory_open
 	_refresh_inventory()
+	_refresh_health()
+	if _flash_alpha > 0.0:
+		_flash_alpha = maxf(0.0, _flash_alpha - delta * 2.5)
+		_flash.color.a = _flash_alpha
+
+
+func on_player_damaged(_amount: float) -> void:
+	_flash_alpha = 0.4
 
 
 # --- construction ---
+
+func _build_health_ui() -> void:
+	_hp_bg = PanelContainer.new()
+	_hp_bg.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	_hp_bg.position = Vector2(16, -36)
+	_hp_bg.custom_minimum_size = Vector2(140, 12)
+	var hp_frame := ColorRect.new()
+	hp_frame.color = Color(0, 0, 0, 0.6)
+	hp_frame.size = Vector2(140, 12)
+	_hp_bg.add_child(hp_frame)
+	_hp_bar = ColorRect.new()
+	_hp_bar.color = Color(0.85, 0.2, 0.2)
+	_hp_bar.position = Vector2(2, 2)
+	_hp_bar.size = Vector2(136, 8)
+	hp_frame.add_child(_hp_bar)
+	add_child(_hp_bg)
+	# full-screen damage flash (fades via _process)
+	_flash = ColorRect.new()
+	_flash.color = Color(0.8, 0.0, 0.0, 0.0)
+	_flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_flash)
+
+
+func _refresh_health() -> void:
+	if _hp_bar == null:
+		return
+	var ratio := clampf(player.hp / PlayerController.MAX_HP, 0.0, 1.0)
+	_hp_bar.size.x = 136.0 * ratio
 
 func _build_crosshair() -> void:
 	var holder := Control.new()

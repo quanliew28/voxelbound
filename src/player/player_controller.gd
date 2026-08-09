@@ -25,6 +25,28 @@ const ACCELERATION: float = 12.0
 const CROUCH_LERP_SPEED: float = 10.0
 const MAX_LOOK_DEGREES: float = 89.0
 
+## Phase 13 combat
+const MAX_HP: float = 100.0
+const MELEE_RANGE: float = 3.0
+const MELEE_COOLDOWN: float = 0.5
+const FALL_DAMAGE_SPEED: float = 14.0
+const FALL_DAMAGE_FACTOR: float = 2.0
+const BOB_FREQUENCY: float = 2.2
+const BOB_AMPLITUDE: float = 0.05
+
+signal damaged(amount: float)
+signal player_died
+
+var hp: float = MAX_HP
+var spawn_point: Vector3 = Vector3.ZERO
+var _attack_timer: float = 0.0
+var _fall_peak_speed: float = 0.0
+var _bob_phase: float = 0.0
+
+## Fall damage from a landing speed (pure, unit-testable).
+static func calc_fall_damage(fall_speed: float) -> float:
+	return maxf(0.0, (fall_speed - FALL_DAMAGE_SPEED) * FALL_DAMAGE_FACTOR)
+
 @onready var head: Node3D = %Head
 @onready var camera: Camera3D = %Camera3D
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
@@ -106,6 +128,9 @@ func _physics_process(delta: float) -> void:
 	_update_crouch(crouch, delta)
 	_handle_mining(delta)
 	move_and_slide()
+	_update_fall_damage()
+	_handle_melee(delta)
+	_update_head_bob(delta)
 
 func _update_crouch(crouch: bool, delta: float) -> void:
 	var target_height: float = CROUCH_HEIGHT
@@ -128,6 +153,95 @@ func _has_headroom() -> bool:
 	query.exclude = [self]
 	var hits := get_world_3d().direct_space_state.intersect_shape(query, 1)
 	return hits.is_empty()
+
+
+# --- Combat (Phase 13) ---
+
+func take_damage(amount: float, from_pos: Vector3) -> void:
+	if hp <= 0.0:
+		return
+	hp = maxf(0.0, hp - amount)
+	damaged.emit(amount)
+	if from_pos.length_squared() > 0.01:
+		var away := global_position - from_pos
+		away.y = 0.0
+		if away.length() > 0.01:
+			velocity += away.normalized() * 6.0
+	if hp <= 0.0:
+		player_died.emit()
+		_respawn()
+
+
+func _respawn() -> void:
+	hp = MAX_HP
+	velocity = Vector3.ZERO
+	global_position = spawn_point
+
+
+## Tool in hand deals tool damage, otherwise barehand 1.
+func melee_damage() -> int:
+	var stack := inventory.get_slot(selected_slot)
+	if stack != null and ToolRegistry.check_tool(stack.item_id):
+		return ToolRegistry.get_damage(stack.item_id)
+	return 1
+
+
+## LMB melee: nearest creature in front within MELEE_RANGE takes damage.
+## Mining takes priority only when no creature is in reach.
+func _handle_melee(delta: float) -> void:
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or inventory_open:
+		return
+	_attack_timer -= delta
+	if not Input.is_action_pressed("interact_primary") or _attack_timer > 0.0:
+		return
+	var target := _find_melee_target()
+	if target == null:
+		return
+	_attack_timer = MELEE_COOLDOWN
+	_mine_progress = 0.0  # melee interrupts mining
+	target.take_damage(float(melee_damage()), -camera.global_transform.basis.z)
+
+
+func _find_melee_target() -> Creature:
+	var origin := camera.global_position
+	var forward := -camera.global_transform.basis.z
+	var best: Creature = null
+	var best_dist := MELEE_RANGE
+	for node in get_tree().get_nodes_in_group("creatures"):
+		var c := node as Creature
+		if c == null or c.hp <= 0.0:
+			continue
+		var to := c.global_position - origin
+		var dist := to.length()
+		if dist > best_dist or to.normalized().dot(forward) < 0.4:
+			continue
+		best = c
+		best_dist = dist
+	return best
+
+
+func _update_fall_damage() -> void:
+	if is_on_floor():
+		if _fall_peak_speed < -FALL_DAMAGE_SPEED:
+			take_damage(calc_fall_damage(-_fall_peak_speed), Vector3.ZERO)
+		_fall_peak_speed = 0.0
+	elif velocity.y < _fall_peak_speed:
+		_fall_peak_speed = velocity.y
+
+
+## Pure bob offset for a phase (unit-testable).
+static func bob_offset(phase: float) -> float:
+	return sin(phase) * BOB_AMPLITUDE
+
+
+func _update_head_bob(delta: float) -> void:
+	var horizontal := Vector2(velocity.x, velocity.z).length()
+	if horizontal > 0.5:
+		_bob_phase += horizontal * delta * BOB_FREQUENCY
+	if is_on_floor() and horizontal > 0.5:
+		camera.position.y = lerpf(camera.position.y, bob_offset(_bob_phase), 8.0 * delta)
+	else:
+		camera.position.y = lerpf(camera.position.y, 0.0, 8.0 * delta)
 
 
 # --- Block interaction (Phase 4) ---

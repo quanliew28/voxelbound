@@ -65,9 +65,24 @@ func _try_spawn() -> void:
 	var creature := Creature.new(creature_type, _rng.randi())
 	creature.world = world
 	creature.player = player
+	creature.died.connect(_on_creature_died)
 	add_child(creature)
 	creature.global_position = pos  # after add_child — global reads need the tree
 	creatures.append(creature)
+
+
+func _on_creature_died(creature: Node) -> void:
+	creatures.erase(creature)
+	if get_parent() == null or creature == null:
+		return
+	var c := creature as Creature
+	for drop in c.def().drops:
+		var count := _rng.randi_range(int(drop.min), int(drop.max))
+		if count <= 0:
+			continue
+		var pickup := PickupEntity.new(BlockRegistry.shared().get_id(StringName(drop.id)), count)
+		pickup.position = creature.global_position + Vector3(0, 0.5, 0)
+		get_parent().add_child(pickup)
 
 
 func _despawn_far() -> void:

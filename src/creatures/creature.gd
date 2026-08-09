@@ -15,20 +15,27 @@ const TYPE_COUNT: int = 5
 const TYPES: Array[Dictionary] = [
 	{"name": "Burrower", "speed": 2.2, "vision": 6.0, "flee_range": 4.0,
 		"aggression": 0.0, "height": 0.6, "body_color": Color(0.55, 0.42, 0.30),
-		"glow": false, "home_radius": 12.0},
+		"glow": false, "home_radius": 12.0, "hp": 6.0, "damage": 1.0,
+		"drops": [{"id": "DIRT", "min": 1, "max": 2}]},
 	{"name": "Stoneback", "speed": 1.4, "vision": 8.0, "flee_range": 0.0,
 		"aggression": 1.0, "height": 1.4, "body_color": Color(0.45, 0.45, 0.50),
-		"glow": false, "home_radius": 16.0},
+		"glow": false, "home_radius": 16.0, "hp": 20.0, "damage": 3.0,
+		"drops": [{"id": "STONE", "min": 1, "max": 3}]},
 	{"name": "Glow Moth", "speed": 3.0, "vision": 10.0, "flee_range": 3.0,
 		"aggression": 0.0, "height": 0.5, "body_color": Color(0.60, 0.80, 1.00),
-		"glow": true, "home_radius": 10.0},
+		"glow": true, "home_radius": 10.0, "hp": 3.0, "damage": 0.0,
+		"drops": [{"id": "CRYSTAL", "min": 1, "max": 1}]},
 	{"name": "Nightcrawler", "speed": 1.8, "vision": 9.0, "flee_range": 0.0,
 		"aggression": 0.5, "height": 0.7, "body_color": Color(0.35, 0.20, 0.45),
-		"glow": false, "home_radius": 14.0},
+		"glow": false, "home_radius": 14.0, "hp": 10.0, "damage": 2.0,
+		"drops": [{"id": "COAL", "min": 1, "max": 2}]},
 	{"name": "Forest Stalker", "speed": 3.4, "vision": 14.0, "flee_range": 0.0,
 		"aggression": 1.0, "height": 1.1, "body_color": Color(0.25, 0.50, 0.30),
-		"glow": false, "home_radius": 20.0},
+		"glow": false, "home_radius": 20.0, "hp": 12.0, "damage": 3.0,
+		"drops": [{"id": "WOOD", "min": 1, "max": 2}]},
 ]
+
+signal died(creature: Node)
 
 var type: int = Type.BURROWER
 var world: VoxelWorld = null
@@ -37,6 +44,8 @@ var home: Vector3
 var state: int = State.IDLE
 var target: Vector3
 var hp: float = 10.0
+var _knockback: Vector3 = Vector3.ZERO
+var _attack_cooldown: float = 0.0
 var _rng: RandomNumberGenerator
 var _state_timer: float = 0.0
 var _bob: float = 0.0
@@ -44,20 +53,24 @@ var _bob: float = 0.0
 
 func _init(creature_type: int, seed_value: int) -> void:
 	type = creature_type
+	hp = float(TYPES[type].hp)
 	_rng = RandomNumberGenerator.new()
 	_rng.seed = seed_value
 
 
 func _ready() -> void:
 	_build_body()
+	add_to_group("creatures")
 	home = global_position
 	target = home
 
 
 func _process(delta: float) -> void:
 	_state_timer -= delta
+	_attack_cooldown -= delta
 	_update_state(delta)
 	_move(delta)
+	_attack_player(delta)
 
 
 func def() -> Dictionary:
@@ -137,7 +150,42 @@ func _move(delta: float) -> void:
 		pos.y = _surface_y(pos.x, pos.z) + 2.0 + sin(_bob * 2.0) * 0.4  # hover
 	else:
 		pos.y = _surface_y(pos.x, pos.z) + float(d.height) * 0.5
+	if _knockback.length() > 0.01:
+		pos += _knockback * delta
+		_knockback = _knockback.lerp(Vector3.ZERO, delta * 4.0)
 	global_position = pos
+
+
+## Player melee hit: applies damage + knockback. Returns true when the
+## creature died (spawner handles drops via the died signal).
+func take_damage(amount: float, knockback_dir: Vector3) -> bool:
+	if hp <= 0.0:
+		return false
+	hp -= amount
+	if knockback_dir.length() > 0.01:
+		_knockback = knockback_dir.normalized() * 5.0
+	if hp <= 0.0:
+		hp = 0.0
+		died.emit(self)
+		queue_free()
+		return true
+	return false
+
+
+## Aggressive creatures in contact hit the player (1 s cooldown).
+func _attack_player(_delta: float) -> void:
+	if player == null or _attack_cooldown > 0.0:
+		return
+	if state != State.CHASE:
+		return
+	var d := def()
+	if float(d.damage) <= 0.0:
+		return
+	if player_distance() > 1.8:
+		return
+	_attack_cooldown = 1.0
+	if player.has_method("take_damage"):
+		player.take_damage(float(d.damage), global_position)
 
 
 func _surface_y(x: float, z: float) -> float:
