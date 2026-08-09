@@ -4,6 +4,7 @@ class_name MainMenu
 ## Quit -> exit.
 
 func _ready() -> void:
+	get_window().content_scale_factor = Settings.load_ui_scale()
 	_build()
 
 

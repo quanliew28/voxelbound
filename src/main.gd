@@ -106,7 +106,13 @@ func _build_pause_menu() -> void:
 	pause_menu.quit_to_menu_pressed.connect(_quit_to_menu)
 	pause_menu.quit_pressed.connect(func() -> void: get_tree().quit())
 	pause_menu.sensitivity_changed.connect(func(v: float) -> void: player.mouse_sensitivity = v)
+	pause_menu.ui_scale_changed.connect(_apply_ui_scale)
 	player.mouse_sensitivity = Settings.load_sensitivity()
+	_apply_ui_scale(Settings.load_ui_scale())
+
+
+func _apply_ui_scale(value: float) -> void:
+	get_window().content_scale_factor = clampf(value, Settings.UI_SCALE_MIN, Settings.UI_SCALE_MAX)
 
 func _build_debug_overlay() -> void:
 	debug_overlay = DebugOverlay.new()

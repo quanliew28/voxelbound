@@ -7,8 +7,10 @@ signal resume_pressed
 signal quit_to_menu_pressed
 signal quit_pressed
 signal sensitivity_changed(value: float)
+signal ui_scale_changed(value: float)
 
 var _sensitivity_slider: HSlider
+var _ui_scale_slider: HSlider
 
 
 func _ready() -> void:
@@ -51,6 +53,20 @@ func _build() -> void:
 	_sensitivity_slider.value_changed.connect(_on_sensitivity)
 	row.add_child(_sensitivity_slider)
 	vbox.add_child(row)
+	# ui scale setting
+	var scale_row := HBoxContainer.new()
+	var scale_label := Label.new()
+	scale_label.text = "UI Scale"
+	scale_row.add_child(scale_label)
+	_ui_scale_slider = HSlider.new()
+	_ui_scale_slider.min_value = Settings.UI_SCALE_MIN
+	_ui_scale_slider.max_value = Settings.UI_SCALE_MAX
+	_ui_scale_slider.step = 0.05
+	_ui_scale_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_ui_scale_slider.value = Settings.load_ui_scale()
+	_ui_scale_slider.value_changed.connect(_on_ui_scale)
+	scale_row.add_child(_ui_scale_slider)
+	vbox.add_child(scale_row)
 	var to_menu := Button.new()
 	to_menu.text = "Save & Quit to Menu"
 	to_menu.pressed.connect(func() -> void: quit_to_menu_pressed.emit())
@@ -64,3 +80,8 @@ func _build() -> void:
 func _on_sensitivity(value: float) -> void:
 	Settings.save_sensitivity(value)
 	sensitivity_changed.emit(value)
+
+
+func _on_ui_scale(value: float) -> void:
+	Settings.save_ui_scale(value)
+	ui_scale_changed.emit(value)

@@ -139,6 +139,16 @@ Decisions, pitfalls, and measurements. Append dated entries.
   meshing changes (counts are an implementation detail; merge behavior and
   seam culling are the invariants).
 
+## 2026-08-08 — UI scaling (post-Phase-18)
+- Godot UI scaling: set `display/window/stretch/mode="canvas_items"` +
+  `aspect="keep"` in project.godot so ALL Control-based UI scales with the
+  window (3D fills the window regardless). Runtime scaling uses
+  `window.content_scale_factor` (multiplies the stretch-derived scale).
+  Apply the persisted value at boot in BOTH the menu and the game scene
+  (each scene sets its own window).
+- In headless test runs the window exists (DisplayServer headless) and
+  content_scale_factor round-trips fine — no special-casing needed.
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains

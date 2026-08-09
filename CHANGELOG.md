@@ -14,9 +14,13 @@ All notable changes per phase. Newest first.
   HP / biome / chunk count / day time / weather.
 - All three built entirely from Control nodes — zero assets, consistent with
   the whole game.
-- Tests: 13 new polish assertions (settings roundtrip, menu buttons/labels,
-  pause flow, debug overlay toggle + text). Total: **410/410 passing; boots
-  clean. VOXELBOUND 1.0 — all 18 phases complete.**
+- **UI scaling**: `display/window/stretch/mode=canvas_items` + `aspect=keep`
+  makes every Control UI scale with the window; a UI Scale slider (0.75-1.5)
+  in the pause menu adjusts `window.content_scale_factor` live and persists
+  it; both the menu and the game apply the saved scale at boot.
+- Tests: 19 polish assertions (settings roundtrip incl. UI scale + clamping,
+  live scale apply, menu buttons/labels, pause flow, debug overlay). Total:
+  **416/416 passing; boots clean. VOXELBOUND 1.0 — all 18 phases complete.**
 
 ## [Phase 17] — 2026-08-08
 - **Greedy meshing** in `VoxelMesher` (same public API): per face direction,

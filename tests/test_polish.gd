@@ -8,6 +8,7 @@ var _failed: int = 0
 
 func run() -> int:
 	_check_settings_roundtrip()
+	await _check_ui_scale_apply()
 	await _check_menu_builds()
 	await _check_pause_flow()
 	await _check_debug_overlay()
@@ -33,6 +34,31 @@ func _check_settings_roundtrip() -> void:
 	Settings.save_sensitivity(0.005)
 	_check(absf(Settings.load_sensitivity() - 0.005) < 0.0001, "settings save/load roundtrip", "got %f" % Settings.load_sensitivity())
 	Settings.save_sensitivity(Settings.DEFAULT_SENSITIVITY)
+	_check(absf(Settings.load_ui_scale() - Settings.DEFAULT_UI_SCALE) < 0.001, "settings default ui scale")
+	Settings.save_ui_scale(1.25)
+	_check(absf(Settings.load_ui_scale() - 1.25) < 0.001, "ui scale save/load roundtrip", "got %f" % Settings.load_ui_scale())
+	Settings.save_ui_scale(5.0)  # clamps to max
+	_check(absf(Settings.load_ui_scale() - Settings.UI_SCALE_MAX) < 0.001, "ui scale clamps to max")
+	Settings.save_ui_scale(Settings.DEFAULT_UI_SCALE)
+
+
+func _check_ui_scale_apply() -> void:
+	Settings.save_ui_scale(1.25)
+	var window := tree.root.get_window()
+	var before := window.content_scale_factor
+	window.content_scale_factor = 1.0
+	var main := preload("res://scenes/main.tscn").instantiate()
+	tree.root.add_child(main)
+	await tree.physics_frame
+	_check(absf(window.content_scale_factor - 1.25) < 0.01, "game applies saved ui scale", "got %f" % window.content_scale_factor)
+	main._apply_ui_scale(1.5)
+	_check(absf(window.content_scale_factor - 1.5) < 0.01, "ui scale applies live")
+	main._apply_ui_scale(0.1)  # clamps to min
+	_check(absf(window.content_scale_factor - Settings.UI_SCALE_MIN) < 0.01, "ui scale clamps live")
+	window.content_scale_factor = before
+	Settings.save_ui_scale(Settings.DEFAULT_UI_SCALE)
+	main.queue_free()
+	await tree.physics_frame
 
 
 func _check_menu_builds() -> void:
