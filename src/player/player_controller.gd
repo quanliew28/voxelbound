@@ -13,6 +13,8 @@ class_name PlayerController
 var world: VoxelWorld = null
 ## Procedural audio manager (wired by main; null in tests is fine).
 var audio: AudioManager = null
+## Procedural particle effects (wired by main; null in tests is fine).
+var fx: ParticleFX = null
 ## Player inventory: 36 slots, slots 0..8 are the hotbar (Phase 7).
 var inventory: Inventory = Inventory.new()
 var selected_slot: int = 0
@@ -217,6 +219,9 @@ func _handle_melee(delta: float) -> void:
 	_mine_progress = 0.0  # melee interrupts mining
 	if audio != null:
 		audio.melee_hit()
+	if fx != null:
+		fx.sparks(target.global_position)
+		fx.damage_hit(target.global_position)
 	target.take_damage(float(melee_damage()), -camera.global_transform.basis.z)
 
 
@@ -242,6 +247,8 @@ func _update_fall_damage() -> void:
 	if is_on_floor():
 		if _fall_peak_speed < -FALL_DAMAGE_SPEED:
 			take_damage(calc_fall_damage(-_fall_peak_speed), Vector3.ZERO)
+			if fx != null:
+				fx.dust(global_position - Vector3(0, 1.0, 0))
 		_fall_peak_speed = 0.0
 	elif velocity.y < _fall_peak_speed:
 		_fall_peak_speed = velocity.y
@@ -296,6 +303,8 @@ func try_place() -> void:
 	world.set_block(target, stack.item_id)
 	if audio != null:
 		audio.block_place()
+	if fx != null:
+		fx.block_place(Vector3(target) + Vector3(0.5, 0.5, 0.5))
 	inventory.remove_from_slot(selected_slot, 1)
 
 
@@ -367,6 +376,8 @@ func _complete_mine(target: Vector3i, id: int) -> void:
 	world.set_block(target, BlockRegistry.AIR_ID)
 	if audio != null:
 		audio.block_break()
+	if fx != null:
+		fx.block_break(Vector3(target) + Vector3(0.5, 0.5, 0.5), id)
 	for drop_name in BlockRegistry.shared().get_drops(id):
 		inventory.add_item(BlockRegistry.shared().get_id(drop_name), 1)
 	_drain_tool()

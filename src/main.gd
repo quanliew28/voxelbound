@@ -15,6 +15,7 @@ var day_night: DayNight
 var weather: Weather
 var creature_spawner: CreatureSpawner
 var audio: AudioManager
+var fx: ParticleFX
 
 func _ready() -> void:
 	_build_environment()
@@ -25,6 +26,7 @@ func _ready() -> void:
 	_build_weather()
 	_build_creatures()
 	_build_audio()
+	_build_fx()
 
 func _build_hud() -> void:
 	hud = HUD.new()
@@ -84,6 +86,12 @@ func _build_audio() -> void:
 	hud.audio = audio
 	creature_spawner.audio = audio
 	audio.start_ambient()
+
+func _build_fx() -> void:
+	fx = ParticleFX.new()
+	fx.name = "FX"
+	add_child(fx)
+	player.fx = fx
 
 func _build_environment() -> void:
 	world_environment = WorldEnvironment.new()

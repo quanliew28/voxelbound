@@ -2,6 +2,21 @@
 
 All notable changes per phase. Newest first.
 
+## [Phase 16] — 2026-08-08
+- **ParticleFX** (`src/fx/particle_fx.gd`): procedural one-shot particle
+  bursts — block debris (cube mesh tinted with the block color), block
+  place dust, melee sparks, damage red burst, cyan crystal sparkle (double
+  burst on crystal break), landing dust. Auto-free after lifetime via
+  SceneTreeTimer.
+- **Wired**: mine/place/melee/fall-damage in the player controller; rain +
+  snow emitters already exist since Phase 11.
+- **Bug found**: a ternary mixing two mesh types (`QuadMesh if … else
+  BoxMesh`) infers Variant, which this project treats as a compile error —
+  annotate `var mesh: Mesh`. (And the Phase 13 `await`-dropping bug
+  reappeared in this suite's last two checks — fixed.)
+- Tests: 4 new fx assertions (emitters spawn, auto-free, block tint,
+  crystal double burst). Total: 397/397 passing; boots clean.
+
 ## [Phase 15] — 2026-08-08
 - **Synth** (`src/audio/synth.gd`): pure procedural sample recipes at
   22050 Hz — sine/square/saw/noise with attack/decay envelopes and

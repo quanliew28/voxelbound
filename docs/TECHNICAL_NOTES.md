@@ -120,6 +120,14 @@ Decisions, pitfalls, and measurements. Append dated entries.
 - Always check `get_frames_available()` before push_buffer — pushing more
   than the internal buffer holds silently drops frames.
 
+## 2026-08-08 — Phase 16 (particles)
+- **Ternary type inference**: `var x := A if cond else B` where A and B are
+  DIFFERENT types infers Variant — this project's warning-as-error settings
+  reject it at compile time. Annotate the target type
+  (`var mesh: Mesh = QuadMesh.new() if not box else BoxMesh.new()`).
+- (Reminder: every coroutine check in a suite's run() must be `await`ed —
+  this suite initially shipped two un-awaited checks and silently ran 2 of 4.)
+
 ## Pitfalls log
 
 - **Godot 4 coroutine calls**: calling a GDScript function that contains

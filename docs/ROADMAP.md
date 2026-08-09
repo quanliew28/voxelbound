@@ -132,9 +132,14 @@ files. AudioManager: one-shot streaming via get_frames_available chunks
 (stereo push_buffer), looping ambient wind. Wired: footsteps/jump/mine/
 place/damage/melee/pickup/creature-hurt/craft-click.
 
-## Phase 16 — Particles / effects [ ]
+## Phase 16 — Particles / effects [x]
 GPUParticles3D with procedural materials: block debris, dust, rain, snow,
 sparks, crystal, damage.
+DONE 2026-08-08: 397/397 assertions (4 fx), boots clean. ParticleFX: one-shot
+GPUParticles3D bursts (block-colored cube debris, place dust, melee sparks,
+damage red burst, cyan crystal sparkle + double burst, landing dust),
+auto-free after lifetime. Wired to mine/place/melee/fall. Rain/snow already
+live since Phase 11.
 
 ## Phase 17 — Optimization [ ]
 Greedy meshing, allocation audit, profile-guided fixes only.
