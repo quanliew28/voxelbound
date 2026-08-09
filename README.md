@@ -13,9 +13,13 @@ No .png · No .jpg · No .svg · No .fbx · No .obj · No .gltf · No .wav · No
 
 ## Status
 
-Early development — currently **Phase 1 of 18 complete** (foundation +
-first-person controller). See [docs/ROADMAP.md](docs/ROADMAP.md) for the full
-phase plan.
+**VOXELBOUND 1.0 — all 18 phases complete (2026-08-08).** Fully playable
+procedural voxel sandbox: seeded biomes + trees, 3D-noise caves and ores,
+day/night + weather, creatures with AI, combat, inventory/crafting/tools,
+save/load (F5/F9), procedural audio, particles, greedy meshing, main menu,
+pause menu (ESC), debug overlay (F3). **410/410 headless assertions pass;
+zero external assets.** See [docs/ROADMAP.md](docs/ROADMAP.md) for the phase
+log and [docs/TECHNICAL_NOTES.md](docs/TECHNICAL_NOTES.md) for pitfalls.
 
 What works today:
 
